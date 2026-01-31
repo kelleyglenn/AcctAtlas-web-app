@@ -25,6 +25,8 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 | Map SDK | Google Maps JavaScript SDK |
 | Styling | Tailwind CSS (recommended) |
 | Testing | Jest, React Testing Library |
+| Linting | ESLint |
+| Formatting | Prettier |
 
 ## Dependencies
 
@@ -208,8 +210,17 @@ npm run dev
 # Run tests
 npm test
 
-# Run linting
+# Run linting (ESLint)
 npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Check formatting (Prettier)
+npm run format:check
+
+# Auto-fix formatting
+npm run format
 
 # Build for production
 npm run build
