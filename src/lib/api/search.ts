@@ -1,5 +1,20 @@
+import axios from "axios";
 import { apiClient } from "./client";
 import type { SearchParams, SearchResponse } from "@/types/map";
+
+/**
+ * Search API error with additional context
+ */
+export class SearchError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly originalError?: unknown
+  ) {
+    super(message);
+    this.name = "SearchError";
+  }
+}
 
 /**
  * Search for videos within a bounding box with optional filters
@@ -35,8 +50,20 @@ export async function searchVideos(
     Object.entries(queryParams).filter(([, v]) => v !== undefined)
   );
 
-  const response = await apiClient.get<SearchResponse>("/search", {
-    params: filteredParams,
-  });
-  return response.data;
+  try {
+    const response = await apiClient.get<SearchResponse>("/search", {
+      params: filteredParams,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to search videos";
+      throw new SearchError(message, statusCode, error);
+    }
+    throw new SearchError("An unexpected error occurred", undefined, error);
+  }
 }

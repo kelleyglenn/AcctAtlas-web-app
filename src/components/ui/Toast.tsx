@@ -96,7 +96,7 @@ export function useToasts() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (type: ToastMessage["type"], message: string) => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     setToasts((prev) => [...prev, { id, type, message }]);
   };
 

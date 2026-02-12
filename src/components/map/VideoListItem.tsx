@@ -75,9 +75,10 @@ export function VideoListItem({ video, onClick }: VideoListItemProps) {
       tabIndex={0}
     >
       <div className="flex gap-3">
-        {/* Thumbnail */}
+        {/* Thumbnail - using img for external URLs with unknown dimensions */}
         {video.thumbnailUrl ? (
           <div className="relative flex-shrink-0 w-24 h-16 rounded overflow-hidden bg-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={video.thumbnailUrl}
               alt=""

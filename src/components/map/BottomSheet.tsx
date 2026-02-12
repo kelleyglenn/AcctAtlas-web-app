@@ -39,7 +39,7 @@ export function BottomSheet({ children, title, subtitle }: BottomSheetProps) {
 
   // Handle drag gestures
   const bind = useDrag(
-    ({ movement: [, my], velocity: [, vy], direction: [, dy], cancel, active }) => {
+    ({ movement: [, my], velocity: [, vy], direction: [, dy], active }) => {
       const container = containerRef.current;
       if (!container) return;
 

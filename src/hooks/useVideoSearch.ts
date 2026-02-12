@@ -15,7 +15,16 @@ export function useVideoSearch({
   enabled = true,
 }: UseVideoSearchOptions) {
   return useQuery<SearchResponse>({
-    queryKey: ["search", "videos", bounds, filters],
+    // Include all filter fields explicitly to prevent refetches when object reference changes
+    queryKey: [
+      "search",
+      "videos",
+      bounds,
+      filters.amendments,
+      filters.participants,
+      filters.dateFrom,
+      filters.dateTo,
+    ],
     queryFn: () =>
       searchVideos({
         bbox: bounds ?? undefined,

@@ -56,9 +56,10 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
       maxWidth="300px"
     >
       <div className="p-1">
-        {/* Thumbnail */}
+        {/* Thumbnail - using img for external URLs with unknown dimensions */}
         {video.thumbnailUrl && (
           <div className="relative mb-2 rounded overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={video.thumbnailUrl}
               alt={video.title}
