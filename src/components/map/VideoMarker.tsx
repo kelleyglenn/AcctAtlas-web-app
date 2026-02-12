@@ -13,6 +13,16 @@ interface VideoMarkerProps {
 export function VideoMarker({ video, onClick }: VideoMarkerProps) {
   const { selectedVideoId, highlightedVideoId, setSelectedVideoId } = useMap();
 
+  // Safety check for valid coordinates
+  if (
+    typeof video.longitude !== "number" ||
+    typeof video.latitude !== "number" ||
+    isNaN(video.longitude) ||
+    isNaN(video.latitude)
+  ) {
+    return null;
+  }
+
   const isSelected = selectedVideoId === video.id;
   const isHighlighted = highlightedVideoId === video.id;
 

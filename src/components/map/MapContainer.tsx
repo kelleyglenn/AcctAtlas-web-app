@@ -41,11 +41,39 @@ export function MapContainer() {
   // Determine whether to show clusters or individual markers
   const showClusters = viewport.zoom < MAP_CONFIG.clusterZoomThreshold;
 
+  // Filter videos with valid coordinates
+  const validVideos = useMemo(() => {
+    if (!searchData?.videos) return [];
+    return searchData.videos.filter(
+      (video) =>
+        typeof video.latitude === "number" &&
+        typeof video.longitude === "number" &&
+        !isNaN(video.latitude) &&
+        !isNaN(video.longitude) &&
+        video.latitude >= -90 &&
+        video.latitude <= 90 &&
+        video.longitude >= -180 &&
+        video.longitude <= 180
+    );
+  }, [searchData?.videos]);
+
+  // Filter clusters with valid coordinates
+  const validClusters = useMemo(() => {
+    if (!clusterData?.clusters) return [];
+    return clusterData.clusters.filter(
+      (cluster) =>
+        typeof cluster.latitude === "number" &&
+        typeof cluster.longitude === "number" &&
+        !isNaN(cluster.latitude) &&
+        !isNaN(cluster.longitude)
+    );
+  }, [clusterData?.clusters]);
+
   // Find selected video for info card
   const selectedVideo = useMemo<VideoLocation | null>(() => {
-    if (!selectedVideoId || !searchData?.videos) return null;
-    return searchData.videos.find((v) => v.id === selectedVideoId) ?? null;
-  }, [selectedVideoId, searchData?.videos]);
+    if (!selectedVideoId || !validVideos.length) return null;
+    return validVideos.find((v) => v.id === selectedVideoId) ?? null;
+  }, [selectedVideoId, validVideos]);
 
   const handleLocationSelect = (name: string) => {
     success(`Moved to ${name}`);
@@ -68,13 +96,13 @@ export function MapContainer() {
         <MapView>
           {/* Clusters */}
           {showClusters &&
-            clusterData?.clusters.map((cluster) => (
+            validClusters.map((cluster) => (
               <ClusterMarker key={cluster.id} cluster={cluster} />
             ))}
 
           {/* Individual markers */}
           {!showClusters &&
-            searchData?.videos.map((video) => (
+            validVideos.map((video) => (
               <VideoMarker key={video.id} video={video} />
             ))}
 
@@ -110,12 +138,12 @@ export function MapContainer() {
                   </div>
                 ))}
               </div>
-            ) : searchData?.videos.length === 0 ? (
+            ) : validVideos.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 <p>No videos in this area</p>
               </div>
             ) : (
-              searchData?.videos.map((video) => (
+              validVideos.map((video) => (
                 <VideoListItem key={video.id} video={video} />
               ))
             )}
@@ -133,7 +161,7 @@ export function MapContainer() {
       {/* Side panel - fixed 350px width */}
       <div className="w-[350px] flex-shrink-0">
         <SidePanel
-          videos={searchData?.videos ?? []}
+          videos={validVideos}
           isLoading={isSearchLoading}
           totalCount={searchData?.total}
         />
@@ -144,13 +172,13 @@ export function MapContainer() {
         <MapView>
           {/* Clusters */}
           {showClusters &&
-            clusterData?.clusters.map((cluster) => (
+            validClusters.map((cluster) => (
               <ClusterMarker key={cluster.id} cluster={cluster} />
             ))}
 
           {/* Individual markers */}
           {!showClusters &&
-            searchData?.videos.map((video) => (
+            validVideos.map((video) => (
               <VideoMarker key={video.id} video={video} />
             ))}
 

@@ -13,6 +13,16 @@ interface ClusterMarkerProps {
 export function ClusterMarker({ cluster, onClick }: ClusterMarkerProps) {
   const { setViewport, viewport } = useMap();
 
+  // Safety check for valid coordinates
+  if (
+    typeof cluster.longitude !== "number" ||
+    typeof cluster.latitude !== "number" ||
+    isNaN(cluster.longitude) ||
+    isNaN(cluster.latitude)
+  ) {
+    return null;
+  }
+
   // Determine size based on count
   const getSize = () => {
     if (cluster.count < 10) return MARKER_SIZES.cluster.small;

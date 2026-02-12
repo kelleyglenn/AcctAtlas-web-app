@@ -12,6 +12,16 @@ interface VideoInfoCardProps {
 export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
   const { setSelectedVideoId } = useMap();
 
+  // Safety check for valid coordinates
+  if (
+    typeof video.longitude !== "number" ||
+    typeof video.latitude !== "number" ||
+    isNaN(video.longitude) ||
+    isNaN(video.latitude)
+  ) {
+    return null;
+  }
+
   const handleClose = () => {
     setSelectedVideoId(null);
     onClose?.();
