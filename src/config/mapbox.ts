@@ -19,7 +19,8 @@ export const MAP_CONFIG = {
   minZoom: 2,
   maxZoom: 18,
   // Zoom threshold for showing individual markers vs clusters
-  clusterZoomThreshold: 14,
+  // Lower value = show markers sooner (clusters only at very zoomed out levels)
+  clusterZoomThreshold: 8,
   // Max videos to show in side panel
   maxVideosInPanel: 50,
   // Debounce delay for map moves (ms)
