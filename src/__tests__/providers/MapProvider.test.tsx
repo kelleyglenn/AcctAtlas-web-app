@@ -130,10 +130,10 @@ describe("MapProvider", () => {
       const { result } = renderHook(() => useMap(), { wrapper });
 
       act(() => {
-        result.current.updateFilters({ amendments: ["1", "4"] });
+        result.current.updateFilters({ amendments: ["FIRST", "FOURTH"] });
       });
 
-      expect(result.current.filters.amendments).toEqual(["1", "4"]);
+      expect(result.current.filters.amendments).toEqual(["FIRST", "FOURTH"]);
       expect(result.current.filters.participants).toEqual([]);
     });
 
@@ -141,36 +141,36 @@ describe("MapProvider", () => {
       const { result } = renderHook(() => useMap(), { wrapper });
 
       act(() => {
-        result.current.updateFilters({ amendments: ["1"] });
+        result.current.updateFilters({ amendments: ["FIRST"] });
       });
 
       act(() => {
-        result.current.updateFilters({ participants: ["police"] });
+        result.current.updateFilters({ participants: ["POLICE"] });
       });
 
-      expect(result.current.filters.amendments).toEqual(["1"]);
-      expect(result.current.filters.participants).toEqual(["police"]);
+      expect(result.current.filters.amendments).toEqual(["FIRST"]);
+      expect(result.current.filters.participants).toEqual(["POLICE"]);
     });
 
     it("should replace filters with setFilters", () => {
       const { result } = renderHook(() => useMap(), { wrapper });
 
       act(() => {
-        result.current.updateFilters({ amendments: ["1"] });
+        result.current.updateFilters({ amendments: ["FIRST"] });
       });
 
       act(() => {
         result.current.setFilters({
-          amendments: ["4"],
-          participants: ["security"],
+          amendments: ["FOURTH"],
+          participants: ["SECURITY"],
           dateFrom: "2024-01-01",
           dateTo: undefined,
         });
       });
 
       expect(result.current.filters).toEqual({
-        amendments: ["4"],
-        participants: ["security"],
+        amendments: ["FOURTH"],
+        participants: ["SECURITY"],
         dateFrom: "2024-01-01",
         dateTo: undefined,
       });
@@ -181,8 +181,8 @@ describe("MapProvider", () => {
 
       act(() => {
         result.current.updateFilters({
-          amendments: ["1", "4"],
-          participants: ["police"],
+          amendments: ["FIRST", "FOURTH"],
+          participants: ["POLICE"],
           dateFrom: "2024-01-01",
         });
       });
