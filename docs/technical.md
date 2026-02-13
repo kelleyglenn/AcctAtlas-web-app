@@ -39,12 +39,14 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [component-library.md](component-library.md) | Planned | Shared UI component documentation |
+| [map-integration.md](map-integration.md) | Complete | Mapbox GL JS integration, component architecture, data flow |
 | [state-management.md](state-management.md) | Planned | TanStack Query and Context patterns |
-| [api-integration.md](api-integration.md) | Planned | API client and endpoint consumption |
-| [authentication-flow.md](authentication-flow.md) | Planned | JWT handling and auth state |
-| [map-integration.md](map-integration.md) | Planned | Google Maps SDK integration |
-| [routing-structure.md](routing-structure.md) | Planned | Next.js App Router organization |
+| [authentication-flow.md](authentication-flow.md) | Planned | JWT handling and OAuth integration |
+
+**Not documented (trivial or covered elsewhere):**
+- Component library: 5 small components, self-documenting via TypeScript
+- API integration: Endpoint tables included in this document
+- Routing structure: Simple structure shown in Application Structure section
 
 ## Application Structure
 
