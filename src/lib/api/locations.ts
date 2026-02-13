@@ -2,8 +2,46 @@ import { apiClient } from "./client";
 import type {
   ClusterParams,
   ClusterResponse,
+  LocationCluster,
   LocationDetails,
 } from "@/types/map";
+
+/**
+ * Raw API response structure from location service cluster endpoint
+ */
+interface ApiCluster {
+  id: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  count: number;
+  sampleVideoIds?: string[];
+}
+
+interface ApiClusterResponse {
+  clusters: ApiCluster[];
+  totalLocations: number;
+  zoom: number;
+}
+
+/**
+ * Transform API cluster response to frontend format
+ */
+function transformClusterResponse(apiResponse: ApiClusterResponse): ClusterResponse {
+  const clusters: LocationCluster[] = apiResponse.clusters.map((cluster) => ({
+    id: cluster.id,
+    latitude: cluster.coordinates.latitude,
+    longitude: cluster.coordinates.longitude,
+    count: cluster.count,
+    videoIds: cluster.sampleVideoIds,
+  }));
+
+  return {
+    clusters,
+    zoom: apiResponse.zoom,
+  };
+}
 
 /**
  * Get clustered locations for a bounding box and zoom level
@@ -11,13 +49,13 @@ import type {
 export async function getClusters(
   params: ClusterParams
 ): Promise<ClusterResponse> {
-  const response = await apiClient.get<ClusterResponse>("/locations/cluster", {
+  const response = await apiClient.get<ApiClusterResponse>("/locations/cluster", {
     params: {
       bbox: params.bbox.join(","),
       zoom: params.zoom,
     },
   });
-  return response.data;
+  return transformClusterResponse(response.data);
 }
 
 /**

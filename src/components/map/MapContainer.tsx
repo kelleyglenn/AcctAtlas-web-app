@@ -94,17 +94,22 @@ export function MapContainer() {
       <div className="h-screen relative">
         {/* Map takes full screen */}
         <MapView>
-          {/* Clusters */}
+          {/* Clusters when zoomed out */}
           {showClusters &&
             validClusters.map((cluster) => (
               <ClusterMarker key={cluster.id} cluster={cluster} />
             ))}
 
-          {/* Individual markers */}
+          {/* Individual markers when zoomed in */}
           {!showClusters &&
             validVideos.map((video) => (
               <VideoMarker key={video.id} video={video} />
             ))}
+
+          {/* Always show selected video marker, even in cluster mode */}
+          {showClusters && selectedVideo && (
+            <VideoMarker key={`selected-${selectedVideo.id}`} video={selectedVideo} />
+          )}
 
           {/* Info card popup */}
           {selectedVideo && <VideoInfoCard video={selectedVideo} />}
@@ -170,17 +175,22 @@ export function MapContainer() {
       {/* Map - fills remaining space */}
       <div className="flex-1 relative">
         <MapView>
-          {/* Clusters */}
+          {/* Clusters when zoomed out */}
           {showClusters &&
             validClusters.map((cluster) => (
               <ClusterMarker key={cluster.id} cluster={cluster} />
             ))}
 
-          {/* Individual markers */}
+          {/* Individual markers when zoomed in */}
           {!showClusters &&
             validVideos.map((video) => (
               <VideoMarker key={video.id} video={video} />
             ))}
+
+          {/* Always show selected video marker, even in cluster mode */}
+          {showClusters && selectedVideo && (
+            <VideoMarker key={`selected-${selectedVideo.id}`} video={selectedVideo} />
+          )}
 
           {/* Info card popup */}
           {selectedVideo && <VideoInfoCard video={selectedVideo} />}

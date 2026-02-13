@@ -116,18 +116,21 @@ export interface AmendmentOption {
 }
 
 // Standard amendments for filtering
+// Values must match the API format (FIRST, SECOND, FOURTH, etc.)
 export const AMENDMENT_OPTIONS: AmendmentOption[] = [
-  { id: "1st", label: "1st Amendment", amendment: "1" },
-  { id: "2nd", label: "2nd Amendment", amendment: "2" },
-  { id: "4th", label: "4th Amendment", amendment: "4" },
-  { id: "5th", label: "5th Amendment", amendment: "5" },
-  { id: "14th", label: "14th Amendment", amendment: "14" },
+  { id: "1st", label: "1st Amendment", amendment: "FIRST" },
+  { id: "2nd", label: "2nd Amendment", amendment: "SECOND" },
+  { id: "4th", label: "4th Amendment", amendment: "FOURTH" },
+  { id: "5th", label: "5th Amendment", amendment: "FIFTH" },
+  { id: "14th", label: "14th Amendment", amendment: "FOURTEENTH" },
 ];
 
 // Participant type filter options
+// Values must match the API format (uppercase)
 export const PARTICIPANT_TYPE_OPTIONS = [
-  { id: "police", label: "Police" },
-  { id: "security", label: "Security" },
-  { id: "government", label: "Government" },
-  { id: "civilian", label: "Civilian" },
+  { id: "POLICE", label: "Police" },
+  { id: "SECURITY", label: "Security" },
+  { id: "GOVERNMENT", label: "Government" },
+  { id: "BUSINESS", label: "Business" },
+  { id: "CIVILIAN", label: "Civilian" },
 ];
