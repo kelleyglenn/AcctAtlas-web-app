@@ -26,11 +26,17 @@ export default function Home() {
           {isAuthenticated && user ? (
             <div className="space-y-4">
               <p className="text-center text-gray-600">
-                Welcome, <span className="font-semibold">{user.displayName}</span>!
+                Welcome,{" "}
+                <span className="font-semibold">{user.displayName}</span>!
               </p>
               <div className="flex flex-col gap-2">
-                <Link href="/profile">
+                <Link href="/map">
                   <Button variant="primary" className="w-full">
+                    Explore Map
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="outline" className="w-full">
                     View Profile
                   </Button>
                 </Link>
@@ -45,8 +51,13 @@ export default function Home() {
                 Geo-located video curation for constitutional rights audits
               </p>
               <div className="flex flex-col gap-2">
-                <Link href="/login">
+                <Link href="/map">
                   <Button variant="primary" className="w-full">
+                    Explore Map
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="outline" className="w-full">
                     Sign In
                   </Button>
                 </Link>
