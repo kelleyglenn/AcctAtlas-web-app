@@ -22,7 +22,7 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 | Language | TypeScript |
 | Server State | TanStack Query (React Query) |
 | UI State | React Context |
-| Map SDK | Google Maps JavaScript SDK |
+| Map SDK | Mapbox GL JS + react-map-gl |
 | Styling | Tailwind CSS (recommended) |
 | Testing | Jest, React Testing Library |
 | Linting | ESLint |
@@ -31,7 +31,8 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 ## Dependencies
 
 - **API Gateway**: All backend API requests route through the gateway at `/api/v1/*`
-- **Google Maps Platform**: Map display, marker clustering, geocoding
+- **Mapbox GL JS**: Map display, marker rendering, fly-to animations
+- **Mapbox Search JS**: Location search autocomplete
 - **YouTube Embed**: Video playback via YouTube iframe embeds
 
 ## Documentation Index
@@ -72,7 +73,7 @@ src/
 ├── providers/              # React Context providers
 │   ├── AuthProvider.tsx    # Authentication state
 │   ├── QueryProvider.tsx   # TanStack Query client
-│   └── MapProvider.tsx     # Google Maps context
+│   └── MapProvider.tsx     # Map viewport, filters, and selection state
 └── types/                  # TypeScript type definitions
 ```
 
@@ -200,7 +201,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your API Gateway URL and Google Maps API key
+# Edit .env.local with your API Gateway URL and Mapbox access token
 
 # Run development server
 npm run dev
@@ -230,6 +231,5 @@ npm run build
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
-NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID=your_google_oauth_client_id
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
 ```
