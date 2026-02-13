@@ -1,6 +1,6 @@
 import axios from "axios";
 import { apiClient } from "./client";
-import type { SearchParams, SearchResponse } from "@/types/map";
+import type { SearchParams, SearchResponse, VideoLocation } from "@/types/map";
 
 /**
  * Search API error with additional context
@@ -14,6 +14,66 @@ export class SearchError extends Error {
     super(message);
     this.name = "SearchError";
   }
+}
+
+/**
+ * Raw API response structure from search service
+ */
+interface ApiSearchResult {
+  id: string;
+  youtubeId: string;
+  title: string;
+  description?: string;
+  channelName?: string;
+  amendments: string[];
+  participants: string[];
+  locations: Array<{
+    id: string;
+    displayName: string;
+    city?: string;
+    state?: string;
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    };
+  }>;
+}
+
+interface ApiSearchResponse {
+  results: ApiSearchResult[];
+  pagination: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Transform API response to frontend format
+ */
+function transformSearchResponse(apiResponse: ApiSearchResponse): SearchResponse {
+  const videos: VideoLocation[] = apiResponse.results
+    .filter((result) => result.locations && result.locations.length > 0)
+    .map((result) => {
+      const primaryLocation = result.locations[0];
+      return {
+        id: primaryLocation.id,
+        videoId: result.id,
+        latitude: primaryLocation.coordinates.latitude,
+        longitude: primaryLocation.coordinates.longitude,
+        title: result.title,
+        amendments: result.amendments,
+        participantCount: result.participants.length,
+      };
+    });
+
+  return {
+    videos,
+    total: apiResponse.pagination.totalElements,
+    page: apiResponse.pagination.page,
+    pageSize: apiResponse.pagination.size,
+  };
 }
 
 /**
@@ -51,10 +111,10 @@ export async function searchVideos(
   );
 
   try {
-    const response = await apiClient.get<SearchResponse>("/search", {
+    const response = await apiClient.get<ApiSearchResponse>("/search", {
       params: filteredParams,
     });
-    return response.data;
+    return transformSearchResponse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status;
