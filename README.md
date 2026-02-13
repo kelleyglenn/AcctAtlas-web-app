@@ -121,18 +121,18 @@ src/
 
 ## Key npm Scripts
 
-| Script                 | Description                                    |
-| ---------------------- | ---------------------------------------------- |
-| `npm run dev`          | Start development server                       |
-| `npm run build`        | Build for production                           |
-| `npm start`            | Start production server                        |
-| `npm test`             | Run tests                                      |
-| `npm run test:watch`   | Run tests in watch mode                        |
-| `npm run lint`         | Check for lint errors                          |
-| `npm run lint:fix`     | Auto-fix lint errors                           |
-| `npm run format`       | Auto-fix formatting                            |
-| `npm run format:check` | Check formatting                               |
-| `npm run check`        | Full quality gate (format + lint + test)       |
+| Script                 | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Start development server                 |
+| `npm run build`        | Build for production                     |
+| `npm start`            | Start production server                  |
+| `npm test`             | Run tests                                |
+| `npm run test:watch`   | Run tests in watch mode                  |
+| `npm run lint`         | Check for lint errors                    |
+| `npm run lint:fix`     | Auto-fix lint errors                     |
+| `npm run format`       | Auto-fix formatting                      |
+| `npm run format:check` | Check formatting                         |
+| `npm run check`        | Full quality gate (format + lint + test) |
 
 ## Documentation
 

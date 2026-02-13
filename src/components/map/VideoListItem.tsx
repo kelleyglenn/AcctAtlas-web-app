@@ -115,7 +115,8 @@ export function VideoListItem({ video, onClick }: VideoListItemProps) {
           </h4>
 
           {/* Amendments and Participants */}
-          {(video.amendments.length > 0 || (video.participantCount && video.participantCount > 0)) && (
+          {(video.amendments.length > 0 ||
+            (video.participantCount && video.participantCount > 0)) && (
             <div className="flex flex-wrap gap-1 mt-1">
               {video.amendments.map((amendment) => (
                 <span
@@ -127,7 +128,8 @@ export function VideoListItem({ video, onClick }: VideoListItemProps) {
               ))}
               {video.participantCount && video.participantCount > 0 && (
                 <span className="inline-block bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded">
-                  {video.participantCount} participant{video.participantCount !== 1 ? "s" : ""}
+                  {video.participantCount} participant
+                  {video.participantCount !== 1 ? "s" : ""}
                 </span>
               )}
             </div>

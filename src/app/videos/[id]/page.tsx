@@ -39,7 +39,9 @@ export default function VideoPage() {
         }
 
         const data = await response.json();
-        const found = data.results?.find((v: { id: string }) => v.id === videoId);
+        const found = data.results?.find(
+          (v: { id: string }) => v.id === videoId
+        );
 
         if (!found) {
           setError("Video not found");

@@ -6,13 +6,13 @@ The map feature uses **Mapbox GL JS** via the `react-map-gl` library to provide 
 
 ## Technology Stack
 
-| Library | Purpose |
-|---------|---------|
-| `mapbox-gl` | Core map rendering engine |
-| `react-map-gl` | React wrapper for Mapbox GL JS |
-| `@mapbox/search-js-react` | Location search autocomplete |
-| `@react-spring/web` | Animations (bottom sheet) |
-| `@use-gesture/react` | Touch/drag gestures (bottom sheet) |
+| Library                   | Purpose                            |
+| ------------------------- | ---------------------------------- |
+| `mapbox-gl`               | Core map rendering engine          |
+| `react-map-gl`            | React wrapper for Mapbox GL JS     |
+| `@mapbox/search-js-react` | Location search autocomplete       |
+| `@react-spring/web`       | Animations (bottom sheet)          |
+| `@use-gesture/react`      | Touch/drag gestures (bottom sheet) |
 
 ## Component Architecture
 
@@ -95,6 +95,7 @@ interface MapContextType {
 ### MapView (`src/components/map/MapView.tsx`)
 
 Wraps `react-map-gl` Map component:
+
 - Syncs viewport state with MapProvider
 - Updates bounds on map move (for querying visible area)
 - Handles `flyTo` requests from MapProvider
@@ -103,6 +104,7 @@ Wraps `react-map-gl` Map component:
 ### MapContainer (`src/components/map/MapContainer.tsx`)
 
 Layout orchestrator that:
+
 - Determines mobile vs desktop layout
 - Fetches data via `useVideoSearch` and `useLocationClusters`
 - Decides whether to show clusters or individual markers based on zoom
@@ -111,6 +113,7 @@ Layout orchestrator that:
 ### VideoMarker (`src/components/map/VideoMarker.tsx`)
 
 Individual video marker with:
+
 - `data-video-id` attribute for E2E testing
 - Visual states: default, selected (red), highlighted (amber)
 - Click handler to select video and show popup
@@ -118,12 +121,14 @@ Individual video marker with:
 ### ClusterMarker (`src/components/map/ClusterMarker.tsx`)
 
 Cluster marker showing count of videos in area:
+
 - Size scales with count (small < 10, medium < 100, large 100+)
 - Click handler zooms to cluster's expansion zoom level
 
 ### VideoInfoCard (`src/components/map/VideoInfoCard.tsx`)
 
 Popup displayed when a video is selected:
+
 - Uses `react-map-gl` Popup component
 - Shows video title, amendments, participant count
 - "View Video" button links to `/videos/{id}`
@@ -136,9 +141,9 @@ Fetches videos for the current map bounds and filters:
 
 ```typescript
 const { data, isLoading, isError } = useVideoSearch({
-  bounds,      // BoundingBox | null
-  filters,     // MapFilters
-  enabled,     // boolean (optional)
+  bounds, // BoundingBox | null
+  filters, // MapFilters
+  enabled, // boolean (optional)
 });
 ```
 
@@ -152,8 +157,8 @@ Fetches clustered locations for zoomed-out views:
 
 ```typescript
 const { data } = useLocationClusters({
-  bounds,  // BoundingBox | null
-  zoom,    // number
+  bounds, // BoundingBox | null
+  zoom, // number
   enabled, // boolean (optional)
 });
 ```
@@ -181,7 +186,7 @@ export const DEFAULT_VIEWPORT = {
 export const MAP_CONFIG = {
   minZoom: 2,
   maxZoom: 18,
-  clusterZoomThreshold: 8,  // Show clusters below this zoom
+  clusterZoomThreshold: 8, // Show clusters below this zoom
   maxVideosInPanel: 50,
   flyToDurationMs: 1500,
 };
@@ -190,11 +195,13 @@ export const MAP_CONFIG = {
 ## Responsive Layout
 
 ### Desktop (width >= 768px)
+
 - Fixed 350px side panel on left with video list
 - Map fills remaining space
 - Location search overlay in top-left of map
 
 ### Mobile (width < 768px)
+
 - Full-screen map
 - Draggable bottom sheet with video list
 - Three snap points: collapsed (100px), half (50%), full (90%)
@@ -202,19 +209,20 @@ export const MAP_CONFIG = {
 
 ## Selection & Highlighting
 
-| Action | Effect |
-|--------|--------|
-| Click marker | Sets `selectedVideoId`, shows popup, scrolls list to item |
-| Click list item | Sets `selectedVideoId`, flies to location, shows popup |
-| Hover list item | Sets `highlightedVideoId`, marker turns amber |
-| Leave list item | Clears `highlightedVideoId` |
-| Close popup | Clears `selectedVideoId` |
+| Action          | Effect                                                    |
+| --------------- | --------------------------------------------------------- |
+| Click marker    | Sets `selectedVideoId`, shows popup, scrolls list to item |
+| Click list item | Sets `selectedVideoId`, flies to location, shows popup    |
+| Hover list item | Sets `highlightedVideoId`, marker turns amber             |
+| Leave list item | Clears `highlightedVideoId`                               |
+| Close popup     | Clears `selectedVideoId`                                  |
 
 ## API Response Transformation
 
 The frontend transforms API responses to match internal types:
 
 ### Search Response
+
 ```typescript
 // API returns:
 { results: [...], pagination: { page, size, totalElements } }
@@ -224,21 +232,26 @@ The frontend transforms API responses to match internal types:
 ```
 
 ### Cluster Response
+
 ```typescript
 // API returns:
-{ clusters: [{ coordinates: { latitude, longitude }, count }] }
+{
+  clusters: [{ coordinates: { latitude, longitude }, count }];
+}
 
 // Transformed to:
-{ clusters: [{ latitude, longitude, count }] }
+{
+  clusters: [{ latitude, longitude, count }];
+}
 ```
 
 ## Filter Values
 
 Filters use API-compatible values (uppercase enum names):
 
-| Filter | Values |
-|--------|--------|
-| Amendments | `FIRST`, `SECOND`, `FOURTH`, `FIFTH`, `FOURTEENTH` |
+| Filter       | Values                                                     |
+| ------------ | ---------------------------------------------------------- |
+| Amendments   | `FIRST`, `SECOND`, `FOURTH`, `FIFTH`, `FOURTEENTH`         |
 | Participants | `POLICE`, `SECURITY`, `GOVERNMENT`, `BUSINESS`, `CIVILIAN` |
 
 Display formatting converts these to user-friendly labels (e.g., `FIRST` → `1st`).
@@ -246,11 +259,13 @@ Display formatting converts these to user-friendly labels (e.g., `FIRST` → `1s
 ## Testing
 
 Components include data attributes for E2E testing:
+
 - `data-video-id` on markers and list items
 - `data-cluster-id` on cluster markers
 - `data-testid` for component identification
 
 Unit tests in `src/__tests__/`:
+
 - `components/map/VideoMarker.test.tsx`
 - `components/map/AmendmentFilter.test.tsx`
 - `components/map/ParticipantFilter.test.tsx`

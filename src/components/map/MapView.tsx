@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useRef, useEffect } from "react";
-import Map, { type MapRef, type ViewStateChangeEvent } from "react-map-gl/mapbox";
+import Map, {
+  type MapRef,
+  type ViewStateChangeEvent,
+} from "react-map-gl/mapbox";
 import { useMap } from "@/providers/MapProvider";
-import {
-  MAPBOX_ACCESS_TOKEN,
-  MAPBOX_STYLE,
-  MAP_CONFIG,
-} from "@/config/mapbox";
+import { MAPBOX_ACCESS_TOKEN, MAPBOX_STYLE, MAP_CONFIG } from "@/config/mapbox";
 import type { BoundingBox } from "@/types/map";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -17,13 +16,8 @@ interface MapViewProps {
 
 export function MapView({ children }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
-  const {
-    viewport,
-    setViewport,
-    setBounds,
-    pendingFlyTo,
-    clearPendingFlyTo,
-  } = useMap();
+  const { viewport, setViewport, setBounds, pendingFlyTo, clearPendingFlyTo } =
+    useMap();
 
   // Update bounds when map moves
   const updateBounds = useCallback(() => {
@@ -81,7 +75,9 @@ export function MapView({ children }: MapViewProps) {
     return (
       <div className="flex items-center justify-center h-full bg-gray-100">
         <div className="text-center p-4">
-          <p className="text-red-600 font-medium">Mapbox token not configured</p>
+          <p className="text-red-600 font-medium">
+            Mapbox token not configured
+          </p>
           <p className="text-gray-600 text-sm mt-2">
             Please set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment
           </p>

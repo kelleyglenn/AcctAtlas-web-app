@@ -34,7 +34,8 @@ export function ClusterMarker({ cluster, onClick }: ClusterMarkerProps) {
 
   const handleClick = () => {
     // Zoom in to expansion zoom or one level up
-    const newZoom = cluster.expansion_zoom ?? Math.min(viewport.zoom + 2, MAP_CONFIG.maxZoom);
+    const newZoom =
+      cluster.expansion_zoom ?? Math.min(viewport.zoom + 2, MAP_CONFIG.maxZoom);
     setViewport({
       longitude: cluster.longitude,
       latitude: cluster.latitude,
@@ -44,9 +45,10 @@ export function ClusterMarker({ cluster, onClick }: ClusterMarkerProps) {
   };
 
   // Format count for display
-  const displayCount = cluster.count >= 1000
-    ? `${Math.floor(cluster.count / 1000)}k+`
-    : cluster.count.toString();
+  const displayCount =
+    cluster.count >= 1000
+      ? `${Math.floor(cluster.count / 1000)}k+`
+      : cluster.count.toString();
 
   return (
     <Marker

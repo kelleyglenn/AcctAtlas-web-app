@@ -6,8 +6,7 @@ import { MapProvider } from "@/providers/MapProvider";
 // Dynamic import MapContainer with SSR disabled
 // Mapbox GL requires browser APIs (document, window) that aren't available during SSR
 const MapContainer = dynamic(
-  () =>
-    import("@/components/map/MapContainer").then((mod) => mod.MapContainer),
+  () => import("@/components/map/MapContainer").then((mod) => mod.MapContainer),
   {
     ssr: false,
     loading: () => (

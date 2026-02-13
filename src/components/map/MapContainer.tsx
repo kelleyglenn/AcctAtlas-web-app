@@ -24,10 +24,7 @@ export function MapContainer() {
   const { toasts, dismissToast, success } = useToasts();
 
   // Fetch videos for current bounds
-  const {
-    data: searchData,
-    isLoading: isSearchLoading,
-  } = useVideoSearch({
+  const { data: searchData, isLoading: isSearchLoading } = useVideoSearch({
     bounds,
     filters,
   });
@@ -110,7 +107,10 @@ export function MapContainer() {
 
           {/* Always show selected video marker, even in cluster mode */}
           {showClusters && selectedVideo && (
-            <VideoMarker key={`selected-${selectedVideo.id}`} video={selectedVideo} />
+            <VideoMarker
+              key={`selected-${selectedVideo.id}`}
+              video={selectedVideo}
+            />
           )}
 
           {/* Info card popup */}
@@ -191,7 +191,10 @@ export function MapContainer() {
 
           {/* Always show selected video marker, even in cluster mode */}
           {showClusters && selectedVideo && (
-            <VideoMarker key={`selected-${selectedVideo.id}`} video={selectedVideo} />
+            <VideoMarker
+              key={`selected-${selectedVideo.id}`}
+              video={selectedVideo}
+            />
           )}
 
           {/* Info card popup */}

@@ -16,17 +16,17 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 
 ## Technology Stack
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Next.js 14 |
-| Language | TypeScript |
+| Component    | Technology                   |
+| ------------ | ---------------------------- |
+| Framework    | Next.js 14                   |
+| Language     | TypeScript                   |
 | Server State | TanStack Query (React Query) |
-| UI State | React Context |
-| Map SDK | Mapbox GL JS + react-map-gl |
-| Styling | Tailwind CSS (recommended) |
-| Testing | Jest, React Testing Library |
-| Linting | ESLint |
-| Formatting | Prettier |
+| UI State     | React Context                |
+| Map SDK      | Mapbox GL JS + react-map-gl  |
+| Styling      | Tailwind CSS (recommended)   |
+| Testing      | Jest, React Testing Library  |
+| Linting      | ESLint                       |
+| Formatting   | Prettier                     |
 
 ## Dependencies
 
@@ -37,13 +37,14 @@ The Web Application is a map-first video discovery interface for AccountabilityA
 
 ## Documentation Index
 
-| Document | Status | Description |
-|----------|--------|-------------|
-| [map-integration.md](map-integration.md) | Complete | Mapbox GL JS integration, component architecture, data flow |
-| [state-management.md](state-management.md) | Planned | TanStack Query and Context patterns |
-| [authentication-flow.md](authentication-flow.md) | Planned | JWT handling and OAuth integration |
+| Document                                         | Status   | Description                                                 |
+| ------------------------------------------------ | -------- | ----------------------------------------------------------- |
+| [map-integration.md](map-integration.md)         | Complete | Mapbox GL JS integration, component architecture, data flow |
+| [state-management.md](state-management.md)       | Planned  | TanStack Query and Context patterns                         |
+| [authentication-flow.md](authentication-flow.md) | Planned  | JWT handling and OAuth integration                          |
 
 **Not documented (trivial or covered elsewhere):**
+
 - Component library: 5 small components, self-documenting via TypeScript
 - API integration: Endpoint tables included in this document
 - Routing structure: Simple structure shown in Application Structure section
@@ -81,75 +82,75 @@ src/
 
 ## Key Features/Pages
 
-| Route | Access | Description |
-|-------|--------|-------------|
-| `/` | Public | Redirects to map view |
-| `/map` | Public | Interactive map with video markers |
-| `/videos` | Public | Paginated video list with filters |
-| `/videos/[id]` | Public | Video detail with embedded player |
-| `/search` | Public | Full-text search results |
-| `/login` | Public | Email/password and OAuth login |
-| `/register` | Public | Account registration |
-| `/submit` | User | Video submission form |
-| `/profile` | User | User profile and settings |
-| `/moderation` | Moderator | Moderation queue dashboard |
-| `/moderation/[id]` | Moderator | Individual moderation item review |
+| Route              | Access    | Description                        |
+| ------------------ | --------- | ---------------------------------- |
+| `/`                | Public    | Redirects to map view              |
+| `/map`             | Public    | Interactive map with video markers |
+| `/videos`          | Public    | Paginated video list with filters  |
+| `/videos/[id]`     | Public    | Video detail with embedded player  |
+| `/search`          | Public    | Full-text search results           |
+| `/login`           | Public    | Email/password and OAuth login     |
+| `/register`        | Public    | Account registration               |
+| `/submit`          | User      | Video submission form              |
+| `/profile`         | User      | User profile and settings          |
+| `/moderation`      | Moderator | Moderation queue dashboard         |
+| `/moderation/[id]` | Moderator | Individual moderation item review  |
 
 ## API Integration
 
 ### Authentication (User Service)
 
-| Endpoint | Method | Usage |
-|----------|--------|-------|
-| `/api/v1/auth/register` | POST | Account registration |
-| `/api/v1/auth/login` | POST | Email/password login |
-| `/api/v1/auth/oauth/{provider}` | POST | OAuth login (Google, Apple) |
-| `/api/v1/auth/refresh` | POST | Token refresh |
-| `/api/v1/auth/logout` | POST | Session invalidation |
-| `/api/v1/users/me` | GET | Current user profile |
-| `/api/v1/users/me` | PUT | Update profile |
+| Endpoint                        | Method | Usage                       |
+| ------------------------------- | ------ | --------------------------- |
+| `/api/v1/auth/register`         | POST   | Account registration        |
+| `/api/v1/auth/login`            | POST   | Email/password login        |
+| `/api/v1/auth/oauth/{provider}` | POST   | OAuth login (Google, Apple) |
+| `/api/v1/auth/refresh`          | POST   | Token refresh               |
+| `/api/v1/auth/logout`           | POST   | Session invalidation        |
+| `/api/v1/users/me`              | GET    | Current user profile        |
+| `/api/v1/users/me`              | PUT    | Update profile              |
 
 ### Videos (Video Service)
 
-| Endpoint | Method | Usage |
-|----------|--------|-------|
-| `/api/v1/videos` | GET | List videos (paginated) |
-| `/api/v1/videos/{id}` | GET | Video details |
-| `/api/v1/videos` | POST | Submit new video |
-| `/api/v1/videos/{id}` | PUT | Update video (owner) |
-| `/api/v1/videos/{id}` | DELETE | Delete video (owner/mod) |
-| `/api/v1/videos/{id}/locations` | GET | Video locations |
-| `/api/v1/videos/{id}/locations` | POST | Add location to video |
+| Endpoint                        | Method | Usage                    |
+| ------------------------------- | ------ | ------------------------ |
+| `/api/v1/videos`                | GET    | List videos (paginated)  |
+| `/api/v1/videos/{id}`           | GET    | Video details            |
+| `/api/v1/videos`                | POST   | Submit new video         |
+| `/api/v1/videos/{id}`           | PUT    | Update video (owner)     |
+| `/api/v1/videos/{id}`           | DELETE | Delete video (owner/mod) |
+| `/api/v1/videos/{id}/locations` | GET    | Video locations          |
+| `/api/v1/videos/{id}/locations` | POST   | Add location to video    |
 
 ### Locations (Location Service)
 
-| Endpoint | Method | Usage |
-|----------|--------|-------|
-| `/api/v1/locations` | GET | Locations in bounding box |
-| `/api/v1/locations/{id}` | GET | Location details |
-| `/api/v1/locations` | POST | Create new location |
-| `/api/v1/locations/cluster` | GET | Clustered markers for viewport |
-| `/api/v1/locations/geocode` | GET | Address to coordinates |
-| `/api/v1/locations/reverse` | GET | Coordinates to address |
+| Endpoint                    | Method | Usage                          |
+| --------------------------- | ------ | ------------------------------ |
+| `/api/v1/locations`         | GET    | Locations in bounding box      |
+| `/api/v1/locations/{id}`    | GET    | Location details               |
+| `/api/v1/locations`         | POST   | Create new location            |
+| `/api/v1/locations/cluster` | GET    | Clustered markers for viewport |
+| `/api/v1/locations/geocode` | GET    | Address to coordinates         |
+| `/api/v1/locations/reverse` | GET    | Coordinates to address         |
 
 ### Search (Search Service)
 
-| Endpoint | Method | Usage |
-|----------|--------|-------|
-| `/api/v1/search` | GET | Execute search query |
-| `/api/v1/search/suggest` | GET | Autocomplete suggestions |
-| `/api/v1/search/facets` | GET | Available facet values |
+| Endpoint                 | Method | Usage                    |
+| ------------------------ | ------ | ------------------------ |
+| `/api/v1/search`         | GET    | Execute search query     |
+| `/api/v1/search/suggest` | GET    | Autocomplete suggestions |
+| `/api/v1/search/facets`  | GET    | Available facet values   |
 
 ### Moderation (Moderation Service)
 
-| Endpoint | Method | Usage |
-|----------|--------|-------|
-| `/api/v1/moderation/queue` | GET | Pending moderation items |
-| `/api/v1/moderation/queue/{id}` | GET | Item details |
-| `/api/v1/moderation/queue/{id}/approve` | POST | Approve content |
-| `/api/v1/moderation/queue/{id}/reject` | POST | Reject with reason |
-| `/api/v1/moderation/reports` | GET | Abuse reports |
-| `/api/v1/moderation/reports` | POST | Submit abuse report |
+| Endpoint                                | Method | Usage                    |
+| --------------------------------------- | ------ | ------------------------ |
+| `/api/v1/moderation/queue`              | GET    | Pending moderation items |
+| `/api/v1/moderation/queue/{id}`         | GET    | Item details             |
+| `/api/v1/moderation/queue/{id}/approve` | POST   | Approve content          |
+| `/api/v1/moderation/queue/{id}/reject`  | POST   | Reject with reason       |
+| `/api/v1/moderation/reports`            | GET    | Abuse reports            |
+| `/api/v1/moderation/reports`            | POST   | Submit abuse report      |
 
 ## Key Design Decisions
 
@@ -158,6 +159,7 @@ src/
 **Decision**: Use Next.js with App Router
 
 **Rationale**:
+
 - Server-side rendering (SSR) for SEO on public video pages
 - File-based routing reduces boilerplate
 - Built-in API routes for BFF pattern if needed
@@ -169,6 +171,7 @@ src/
 **Decision**: Use TanStack Query (React Query) for API data
 
 **Rationale**:
+
 - Automatic caching and background refetching
 - Built-in loading and error states
 - Optimistic updates for better UX
@@ -180,6 +183,7 @@ src/
 **Decision**: Use React Context for authentication and UI preferences
 
 **Rationale**:
+
 - Lightweight solution for global UI state
 - No additional dependencies
 - Sufficient for auth state and theme preferences
@@ -190,6 +194,7 @@ src/
 **Decision**: Store access token in memory, refresh token in httpOnly cookie
 
 **Rationale**:
+
 - Access token in memory prevents XSS token theft
 - httpOnly cookie prevents JavaScript access to refresh token
 - Automatic token refresh on 401 responses

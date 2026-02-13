@@ -52,7 +52,9 @@ interface ApiSearchResponse {
 /**
  * Transform API response to frontend format
  */
-function transformSearchResponse(apiResponse: ApiSearchResponse): SearchResponse {
+function transformSearchResponse(
+  apiResponse: ApiSearchResponse
+): SearchResponse {
   const videos: VideoLocation[] = apiResponse.results
     .filter((result) => result.locations && result.locations.length > 0)
     .map((result) => {

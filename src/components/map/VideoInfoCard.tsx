@@ -93,9 +93,13 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
         {/* Date and participants */}
         <div className="text-xs text-gray-500 space-y-0.5">
           {video.recordedAt && <p>Recorded: {formatDate(video.recordedAt)}</p>}
-          {video.participantCount !== undefined && video.participantCount > 0 && (
-            <p>{video.participantCount} participant{video.participantCount !== 1 ? "s" : ""}</p>
-          )}
+          {video.participantCount !== undefined &&
+            video.participantCount > 0 && (
+              <p>
+                {video.participantCount} participant
+                {video.participantCount !== 1 ? "s" : ""}
+              </p>
+            )}
         </div>
 
         {/* View button */}

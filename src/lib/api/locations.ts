@@ -28,7 +28,9 @@ interface ApiClusterResponse {
 /**
  * Transform API cluster response to frontend format
  */
-function transformClusterResponse(apiResponse: ApiClusterResponse): ClusterResponse {
+function transformClusterResponse(
+  apiResponse: ApiClusterResponse
+): ClusterResponse {
   const clusters: LocationCluster[] = apiResponse.clusters.map((cluster) => ({
     id: cluster.id,
     latitude: cluster.coordinates.latitude,
@@ -49,12 +51,15 @@ function transformClusterResponse(apiResponse: ApiClusterResponse): ClusterRespo
 export async function getClusters(
   params: ClusterParams
 ): Promise<ClusterResponse> {
-  const response = await apiClient.get<ApiClusterResponse>("/locations/cluster", {
-    params: {
-      bbox: params.bbox.join(","),
-      zoom: params.zoom,
-    },
-  });
+  const response = await apiClient.get<ApiClusterResponse>(
+    "/locations/cluster",
+    {
+      params: {
+        bbox: params.bbox.join(","),
+        zoom: params.zoom,
+      },
+    }
+  );
   return transformClusterResponse(response.data);
 }
 

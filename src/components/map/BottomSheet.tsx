@@ -44,11 +44,15 @@ export function BottomSheet({ children, title, subtitle }: BottomSheetProps) {
       if (!container) return;
 
       const containerHeight = window.innerHeight;
-      const currentY = (my / containerHeight) * 100 + (100 - SNAP_POINTS.collapsed);
+      const currentY =
+        (my / containerHeight) * 100 + (100 - SNAP_POINTS.collapsed);
 
       if (active) {
         // Clamp to valid range
-        const clampedY = Math.max(100 - SNAP_POINTS.expanded, Math.min(100 - SNAP_POINTS.collapsed, currentY));
+        const clampedY = Math.max(
+          100 - SNAP_POINTS.expanded,
+          Math.min(100 - SNAP_POINTS.collapsed, currentY)
+        );
         api.start({ y: clampedY, immediate: true });
       } else {
         // On release, snap to nearest point
@@ -56,13 +60,19 @@ export function BottomSheet({ children, title, subtitle }: BottomSheetProps) {
         let targetY = currentY;
         if (Math.abs(vy) > 0.5) {
           // Fast swipe - go to next snap point in direction
-          const snapValues = Object.values(SNAP_POINTS).map((s) => 100 - s).sort((a, b) => a - b);
+          const snapValues = Object.values(SNAP_POINTS)
+            .map((s) => 100 - s)
+            .sort((a, b) => a - b);
           if (dy > 0) {
             // Swiping down
-            targetY = snapValues.find((s) => s > currentY) ?? snapValues[snapValues.length - 1];
+            targetY =
+              snapValues.find((s) => s > currentY) ??
+              snapValues[snapValues.length - 1];
           } else {
             // Swiping up
-            targetY = [...snapValues].reverse().find((s) => s < currentY) ?? snapValues[0];
+            targetY =
+              [...snapValues].reverse().find((s) => s < currentY) ??
+              snapValues[0];
           }
         } else {
           targetY = findNearestSnap(currentY);
@@ -103,7 +113,10 @@ export function BottomSheet({ children, title, subtitle }: BottomSheetProps) {
       </div>
 
       {/* Content - scrollable */}
-      <div className="overflow-y-auto" style={{ maxHeight: "calc(100% - 80px)" }}>
+      <div
+        className="overflow-y-auto"
+        style={{ maxHeight: "calc(100% - 80px)" }}
+      >
         {children}
       </div>
     </animated.div>

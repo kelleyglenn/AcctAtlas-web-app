@@ -39,7 +39,8 @@ export function SidePanel({ videos, isLoading, totalCount }: SidePanelProps) {
         <h2 className="text-lg font-semibold text-gray-900">Videos</h2>
         {totalCount !== undefined && (
           <p className="text-sm text-gray-500">
-            {totalCount.toLocaleString()} video{totalCount !== 1 ? "s" : ""} in this area
+            {totalCount.toLocaleString()} video{totalCount !== 1 ? "s" : ""} in
+            this area
           </p>
         )}
       </div>
