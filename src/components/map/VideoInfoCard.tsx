@@ -2,7 +2,7 @@
 
 import { Popup } from "react-map-gl/mapbox";
 import { useMap } from "@/providers/MapProvider";
-import type { VideoLocation } from "@/types/map";
+import { formatAmendment, type VideoLocation } from "@/types/map";
 
 interface VideoInfoCardProps {
   video: VideoLocation;
@@ -85,7 +85,7 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
               key={amendment}
               className="inline-block bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded"
             >
-              {amendment}A
+              {formatAmendment(amendment)}
             </span>
           ))}
         </div>

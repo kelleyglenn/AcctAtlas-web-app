@@ -125,6 +125,32 @@ export const AMENDMENT_OPTIONS: AmendmentOption[] = [
   { id: "14th", label: "14th Amendment", amendment: "FOURTEENTH" },
 ];
 
+// Map API amendment values to display labels
+const AMENDMENT_DISPLAY_MAP: Record<string, string> = {
+  FIRST: "1st",
+  SECOND: "2nd",
+  THIRD: "3rd",
+  FOURTH: "4th",
+  FIFTH: "5th",
+  SIXTH: "6th",
+  SEVENTH: "7th",
+  EIGHTH: "8th",
+  NINTH: "9th",
+  TENTH: "10th",
+  ELEVENTH: "11th",
+  TWELFTH: "12th",
+  THIRTEENTH: "13th",
+  FOURTEENTH: "14th",
+  FIFTEENTH: "15th",
+};
+
+/**
+ * Format an amendment value for display (e.g., "FIRST" -> "1st")
+ */
+export function formatAmendment(amendment: string): string {
+  return AMENDMENT_DISPLAY_MAP[amendment] || amendment;
+}
+
 // Participant type filter options
 // Values must match the API format (uppercase)
 export const PARTICIPANT_TYPE_OPTIONS = [
