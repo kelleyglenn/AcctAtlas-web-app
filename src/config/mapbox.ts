@@ -27,6 +27,8 @@ export const MAP_CONFIG = {
   moveDebounceMs: 300,
   // Animation duration for fly-to (ms)
   flyToDurationMs: 1500,
+  // Padding (px) for fitBounds when zooming into clusters
+  fitBoundsPadding: 50,
 };
 
 // Marker colors

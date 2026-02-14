@@ -83,7 +83,7 @@ export function MapView({ children }: MapViewProps) {
     if (!pendingFitBounds || !mapRef.current) return;
 
     mapRef.current.fitBounds(pendingFitBounds, {
-      padding: 50,
+      padding: MAP_CONFIG.fitBoundsPadding,
       duration: MAP_CONFIG.flyToDurationMs,
     });
 
