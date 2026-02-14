@@ -11,8 +11,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "check": "npm run format:check && npm run lint && npm run test"
+    "check": "npm run format:check && npm run lint && npm run test:coverage"
   },
   "dependencies": {
     "@mapbox/search-js-react": "^1.5.1",
