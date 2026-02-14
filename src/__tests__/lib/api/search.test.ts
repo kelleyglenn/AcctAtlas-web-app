@@ -150,19 +150,14 @@ describe("api/search", () => {
       (apiClient.get as jest.Mock).mockRejectedValue(axiosError);
       (axios.isAxiosError as jest.Mock).mockReturnValue(true);
 
-      await expect(searchVideos({ page: 0, pageSize: 20 })).rejects.toThrow(
-        SearchError
+      const error = await searchVideos({ page: 0, pageSize: 20 }).catch(
+        (e) => e
       );
 
-      try {
-        await searchVideos({ page: 0, pageSize: 20 });
-      } catch (error) {
-        expect(error).toBeInstanceOf(SearchError);
-        const searchError = error as SearchError;
-        expect(searchError.message).toBe("Not found");
-        expect(searchError.statusCode).toBe(404);
-        expect(searchError.originalError).toBe(axiosError);
-      }
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("Not found");
+      expect(error.statusCode).toBe(404);
+      expect(error.originalError).toBe(axiosError);
     });
 
     it("wraps non-Axios errors in SearchError with 'An unexpected error occurred'", async () => {
@@ -171,15 +166,14 @@ describe("api/search", () => {
       (apiClient.get as jest.Mock).mockRejectedValue(genericError);
       (axios.isAxiosError as jest.Mock).mockReturnValue(false);
 
-      try {
-        await searchVideos({ page: 0, pageSize: 20 });
-      } catch (error) {
-        expect(error).toBeInstanceOf(SearchError);
-        const searchError = error as SearchError;
-        expect(searchError.message).toBe("An unexpected error occurred");
-        expect(searchError.statusCode).toBeUndefined();
-        expect(searchError.originalError).toBe(genericError);
-      }
+      const error = await searchVideos({ page: 0, pageSize: 20 }).catch(
+        (e) => e
+      );
+
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("An unexpected error occurred");
+      expect(error.statusCode).toBeUndefined();
+      expect(error.originalError).toBe(genericError);
     });
   });
 

@@ -244,6 +244,40 @@ describe("MapProvider", () => {
     });
   });
 
+  describe("fitBounds functionality", () => {
+    it("should set pending fitBounds", () => {
+      const { result } = renderHook(() => useMap(), { wrapper });
+
+      const bounds: [[number, number], [number, number]] = [
+        [-123, 37],
+        [-122, 38],
+      ];
+
+      act(() => {
+        result.current.fitBounds(bounds);
+      });
+
+      expect(result.current.pendingFitBounds).toEqual(bounds);
+    });
+
+    it("should clear pending fitBounds", () => {
+      const { result } = renderHook(() => useMap(), { wrapper });
+
+      act(() => {
+        result.current.fitBounds([
+          [-123, 37],
+          [-122, 38],
+        ]);
+      });
+
+      act(() => {
+        result.current.clearPendingFitBounds();
+      });
+
+      expect(result.current.pendingFitBounds).toBeNull();
+    });
+  });
+
   describe("useMap hook outside provider", () => {
     it("should throw error when used outside MapProvider", () => {
       // Suppress console.error for this test

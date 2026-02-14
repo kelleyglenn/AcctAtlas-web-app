@@ -152,6 +152,23 @@ describe("ClusterMarker", () => {
   });
 
   describe("click handling", () => {
+    it("should call fitBounds when cluster has bounds", () => {
+      const cluster = {
+        ...validCluster,
+        bounds: { minLat: 37, maxLat: 38, minLng: -123, maxLng: -122 },
+      };
+      renderWithProvider(<ClusterMarker cluster={cluster} />);
+
+      act(() => {
+        fireEvent.click(screen.getByRole("button"));
+      });
+
+      expect(mapState.pendingFitBounds).toEqual([
+        [-123, 37],
+        [-122, 38],
+      ]);
+    });
+
     it("should call setViewport with expansion_zoom when provided", () => {
       const cluster = { ...validCluster, expansion_zoom: 10 };
       renderWithProvider(<ClusterMarker cluster={cluster} />);
