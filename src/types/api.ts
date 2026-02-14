@@ -103,8 +103,7 @@ export interface CreateVideoRequest {
 }
 
 export interface CreateLocationRequest {
-  latitude: number;
-  longitude: number;
+  coordinates: { latitude: number; longitude: number };
   displayName: string;
   address?: string;
   city?: string;

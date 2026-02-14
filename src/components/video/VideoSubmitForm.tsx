@@ -114,8 +114,10 @@ export function VideoSubmitForm() {
     try {
       // Create location first
       const loc = await createLocation({
-        latitude: location!.latitude,
-        longitude: location!.longitude,
+        coordinates: {
+          latitude: location!.latitude,
+          longitude: location!.longitude,
+        },
         displayName: location!.geocode.displayName,
         address: location!.geocode.address,
         city: location!.geocode.city,
