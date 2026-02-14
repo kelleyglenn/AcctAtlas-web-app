@@ -249,10 +249,10 @@ The frontend transforms API responses to match internal types:
 
 Filters use API-compatible values (uppercase enum names):
 
-| Filter       | Values                                                     |
-| ------------ | ---------------------------------------------------------- |
-| Amendments   | `FIRST`, `SECOND`, `FOURTH`, `FIFTH`, `FOURTEENTH`         |
-| Participants | `POLICE`, `SECURITY`, `GOVERNMENT`, `BUSINESS`, `CIVILIAN` |
+| Filter       | Values                                             |
+| ------------ | -------------------------------------------------- |
+| Amendments   | `FIRST`, `SECOND`, `FOURTH`, `FIFTH`, `FOURTEENTH` |
+| Participants | `POLICE`, `GOVERNMENT`, `BUSINESS`, `CITIZEN`      |
 
 Display formatting converts these to user-friendly labels (e.g., `FIRST` → `1st`).
 

@@ -162,7 +162,7 @@ describe("MapProvider", () => {
       act(() => {
         result.current.setFilters({
           amendments: ["FOURTH"],
-          participants: ["SECURITY"],
+          participants: ["CITIZEN"],
           dateFrom: "2024-01-01",
           dateTo: undefined,
         });
@@ -170,7 +170,7 @@ describe("MapProvider", () => {
 
       expect(result.current.filters).toEqual({
         amendments: ["FOURTH"],
-        participants: ["SECURITY"],
+        participants: ["CITIZEN"],
         dateFrom: "2024-01-01",
         dateTo: undefined,
       });
