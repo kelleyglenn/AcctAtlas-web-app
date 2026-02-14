@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { MapProvider } from "@/providers/MapProvider";
 
@@ -18,8 +19,22 @@ const MapContainer = dynamic(
 );
 
 export default function MapPage() {
+  const searchParams = useSearchParams();
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+  const zoom = searchParams.get("zoom");
+
+  const initialViewport =
+    lat && lng
+      ? {
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lng),
+          zoom: zoom ? parseInt(zoom) : 14,
+        }
+      : undefined;
+
   return (
-    <MapProvider>
+    <MapProvider initialViewport={initialViewport}>
       <MapContainer />
     </MapProvider>
   );

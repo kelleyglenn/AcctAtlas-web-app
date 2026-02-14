@@ -48,6 +48,7 @@ const MapContext = createContext<MapContextType | undefined>(undefined);
 
 interface MapProviderProps {
   children: ReactNode;
+  initialViewport?: Partial<MapViewport>;
 }
 
 const INITIAL_FILTERS: MapFilters = {
@@ -57,8 +58,11 @@ const INITIAL_FILTERS: MapFilters = {
   dateTo: undefined,
 };
 
-export function MapProvider({ children }: MapProviderProps) {
-  const [viewport, setViewport] = useState<MapViewport>(DEFAULT_VIEWPORT);
+export function MapProvider({ children, initialViewport }: MapProviderProps) {
+  const [viewport, setViewport] = useState<MapViewport>({
+    ...DEFAULT_VIEWPORT,
+    ...initialViewport,
+  });
   const [bounds, setBounds] = useState<BoundingBox | null>(null);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [highlightedVideoId, setHighlightedVideoId] = useState<string | null>(
