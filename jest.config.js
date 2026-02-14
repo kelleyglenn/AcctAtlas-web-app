@@ -25,10 +25,10 @@ const customJestConfig = {
       lines: 80,
     },
     "./src/providers/": {
-      statements: 70,
-      branches: 60,
-      functions: 70,
-      lines: 70,
+      statements: 90,
+      branches: 90,
+      functions: 90,
+      lines: 90,
     },
     "./src/components/ui/": {
       statements: 80,
