@@ -17,6 +17,7 @@ interface ApiCluster {
   };
   count: number;
   sampleVideoIds?: string[];
+  bounds?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
 }
 
 interface ApiClusterResponse {
@@ -37,6 +38,7 @@ function transformClusterResponse(
     longitude: cluster.coordinates.longitude,
     count: cluster.count,
     videoIds: cluster.sampleVideoIds,
+    bounds: cluster.bounds,
   }));
 
   return {

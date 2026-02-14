@@ -11,7 +11,7 @@ interface ClusterMarkerProps {
 }
 
 export function ClusterMarker({ cluster, onClick }: ClusterMarkerProps) {
-  const { setViewport, viewport } = useMap();
+  const { setViewport, viewport, fitBounds } = useMap();
 
   // Safety check for valid coordinates
   if (
@@ -33,14 +33,23 @@ export function ClusterMarker({ cluster, onClick }: ClusterMarkerProps) {
   const size = getSize();
 
   const handleClick = () => {
-    // Zoom in to expansion zoom or one level up
-    const newZoom =
-      cluster.expansion_zoom ?? Math.min(viewport.zoom + 2, MAP_CONFIG.maxZoom);
-    setViewport({
-      longitude: cluster.longitude,
-      latitude: cluster.latitude,
-      zoom: newZoom,
-    });
+    if (cluster.bounds) {
+      // Use fitBounds to show all cluster members
+      fitBounds([
+        [cluster.bounds.minLng, cluster.bounds.minLat],
+        [cluster.bounds.maxLng, cluster.bounds.maxLat],
+      ]);
+    } else {
+      // Fallback: zoom in to expansion zoom or one level up
+      const newZoom =
+        cluster.expansion_zoom ??
+        Math.min(viewport.zoom + 2, MAP_CONFIG.maxZoom);
+      setViewport({
+        longitude: cluster.longitude,
+        latitude: cluster.latitude,
+        zoom: newZoom,
+      });
+    }
     onClick?.(cluster);
   };
 
