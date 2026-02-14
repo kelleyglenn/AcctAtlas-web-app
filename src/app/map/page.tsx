@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { MapProvider } from "@/providers/MapProvider";
@@ -18,7 +19,7 @@ const MapContainer = dynamic(
   }
 );
 
-export default function MapPage() {
+function MapPageContent() {
   const searchParams = useSearchParams();
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
@@ -37,5 +38,19 @@ export default function MapPage() {
     <MapProvider initialViewport={initialViewport}>
       <MapContainer />
     </MapProvider>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-[calc(100vh-3.5rem)] bg-gray-100 flex items-center justify-center">
+          <div className="text-gray-500">Loading map...</div>
+        </div>
+      }
+    >
+      <MapPageContent />
+    </Suspense>
   );
 }
