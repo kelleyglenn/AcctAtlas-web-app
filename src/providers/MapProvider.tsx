@@ -37,6 +37,11 @@ interface MapContextType {
   flyTo: (longitude: number, latitude: number, zoom?: number) => void;
   pendingFlyTo: { longitude: number; latitude: number; zoom?: number } | null;
   clearPendingFlyTo: () => void;
+
+  // Fit bounds to show a region
+  fitBounds: (bounds: [[number, number], [number, number]]) => void;
+  pendingFitBounds: [[number, number], [number, number]] | null;
+  clearPendingFitBounds: () => void;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
@@ -65,6 +70,9 @@ export function MapProvider({ children }: MapProviderProps) {
     latitude: number;
     zoom?: number;
   } | null>(null);
+  const [pendingFitBounds, setPendingFitBounds] = useState<
+    [[number, number], [number, number]] | null
+  >(null);
 
   const updateFilters = useCallback((updates: Partial<MapFilters>) => {
     setFilters((prev) => ({ ...prev, ...updates }));
@@ -85,6 +93,17 @@ export function MapProvider({ children }: MapProviderProps) {
     setPendingFlyTo(null);
   }, []);
 
+  const fitBounds = useCallback(
+    (bounds: [[number, number], [number, number]]) => {
+      setPendingFitBounds(bounds);
+    },
+    []
+  );
+
+  const clearPendingFitBounds = useCallback(() => {
+    setPendingFitBounds(null);
+  }, []);
+
   const value: MapContextType = {
     viewport,
     setViewport,
@@ -101,6 +120,9 @@ export function MapProvider({ children }: MapProviderProps) {
     flyTo,
     pendingFlyTo,
     clearPendingFlyTo,
+    fitBounds,
+    pendingFitBounds,
+    clearPendingFitBounds,
   };
 
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>;

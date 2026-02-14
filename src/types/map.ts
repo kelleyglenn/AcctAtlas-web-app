@@ -38,6 +38,7 @@ export interface LocationCluster {
   count: number;
   expansion_zoom?: number;
   videoIds?: string[];
+  bounds?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
 }
 
 // Search API response

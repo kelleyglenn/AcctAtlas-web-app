@@ -16,8 +16,15 @@ interface MapViewProps {
 
 export function MapView({ children }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
-  const { viewport, setViewport, setBounds, pendingFlyTo, clearPendingFlyTo } =
-    useMap();
+  const {
+    viewport,
+    setViewport,
+    setBounds,
+    pendingFlyTo,
+    clearPendingFlyTo,
+    pendingFitBounds,
+    clearPendingFitBounds,
+  } = useMap();
 
   // Update bounds when map moves
   const updateBounds = useCallback(() => {
@@ -70,6 +77,18 @@ export function MapView({ children }: MapViewProps) {
 
     clearPendingFlyTo();
   }, [pendingFlyTo, clearPendingFlyTo, viewport.zoom]);
+
+  // Handle pending fit-bounds requests
+  useEffect(() => {
+    if (!pendingFitBounds || !mapRef.current) return;
+
+    mapRef.current.fitBounds(pendingFitBounds, {
+      padding: MAP_CONFIG.fitBoundsPadding,
+      duration: MAP_CONFIG.flyToDurationMs,
+    });
+
+    clearPendingFitBounds();
+  }, [pendingFitBounds, clearPendingFitBounds]);
 
   if (!MAPBOX_ACCESS_TOKEN) {
     return (

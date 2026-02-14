@@ -54,8 +54,7 @@ export function MapContainer() {
     );
   }, [searchData?.videos]);
 
-  // Filter clusters with valid coordinates and more than 1 item
-  // Single-item "clusters" are hidden - users see individual markers when zoomed in
+  // Filter clusters with valid coordinates
   const validClusters = useMemo(() => {
     if (!clusterData?.clusters) return [];
     return clusterData.clusters.filter(
@@ -63,8 +62,7 @@ export function MapContainer() {
         typeof cluster.latitude === "number" &&
         typeof cluster.longitude === "number" &&
         !isNaN(cluster.latitude) &&
-        !isNaN(cluster.longitude) &&
-        cluster.count > 1 // Only show as cluster if more than 1 item
+        !isNaN(cluster.longitude)
     );
   }, [clusterData?.clusters]);
 
