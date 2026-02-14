@@ -35,6 +35,13 @@ jest.mock("react-map-gl/mapbox", () => {
   };
 });
 
+// Mock @mapbox/search-js-react
+jest.mock("@mapbox/search-js-react", () => ({
+  SearchBox: (props: { placeholder?: string }) => (
+    <input data-testid="mock-search-box" placeholder={props.placeholder} />
+  ),
+}));
+
 // Mock mapbox-gl CSS import
 jest.mock("mapbox-gl/dist/mapbox-gl.css", () => ({}));
 
