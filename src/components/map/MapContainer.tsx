@@ -79,7 +79,7 @@ export function MapContainer() {
   // Don't render until we know if we're on mobile
   if (!isClient) {
     return (
-      <div className="h-screen bg-gray-100 flex items-center justify-center">
+      <div className="h-[calc(100vh-3.5rem)] bg-gray-100 flex items-center justify-center">
         <div className="text-gray-500">Loading map...</div>
       </div>
     );
@@ -88,7 +88,7 @@ export function MapContainer() {
   // Mobile layout
   if (isMobile) {
     return (
-      <div className="h-screen relative">
+      <div className="h-[calc(100vh-3.5rem)] relative">
         {/* Map takes full screen */}
         <MapView>
           {/* Clusters when zoomed out */}
@@ -162,7 +162,7 @@ export function MapContainer() {
 
   // Desktop layout
   return (
-    <div className="h-screen flex">
+    <div className="h-[calc(100vh-3.5rem)] flex">
       {/* Side panel - fixed 350px width */}
       <div className="w-[350px] flex-shrink-0">
         <SidePanel
