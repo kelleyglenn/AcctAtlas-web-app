@@ -10,7 +10,7 @@ const MapContainer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-screen bg-gray-100 flex items-center justify-center">
+      <div className="h-[calc(100vh-3.5rem)] bg-gray-100 flex items-center justify-center">
         <div className="text-gray-500">Loading map...</div>
       </div>
     ),

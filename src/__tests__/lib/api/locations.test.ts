@@ -1,10 +1,16 @@
 jest.mock("@/lib/api/client", () => ({
   apiClient: {
     get: jest.fn(),
+    post: jest.fn(),
   },
 }));
 
-import { getClusters, getLocation } from "@/lib/api/locations";
+import {
+  getClusters,
+  getLocation,
+  createLocation,
+  reverseGeocode,
+} from "@/lib/api/locations";
 import { apiClient } from "@/lib/api/client";
 
 describe("api/locations", () => {
@@ -108,6 +114,59 @@ describe("api/locations", () => {
 
       expect(apiClient.get).toHaveBeenCalledWith("/locations/loc-1");
       expect(result).toEqual(locationData);
+    });
+  });
+
+  describe("createLocation", () => {
+    it("calls apiClient.post with /locations and request body, returns response.data", async () => {
+      const requestData = {
+        latitude: 40.7128,
+        longitude: -74.006,
+        displayName: "New York City Hall",
+        address: "260 Broadway",
+        city: "New York",
+        state: "NY",
+        country: "US",
+      };
+
+      const responseData = {
+        id: "loc-new-1",
+        displayName: "New York City Hall",
+        address: "260 Broadway",
+        city: "New York",
+        state: "NY",
+        country: "US",
+        latitude: 40.7128,
+        longitude: -74.006,
+      };
+
+      (apiClient.post as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await createLocation(requestData);
+
+      expect(apiClient.post).toHaveBeenCalledWith("/locations", requestData);
+      expect(result).toEqual(responseData);
+    });
+  });
+
+  describe("reverseGeocode", () => {
+    it("calls apiClient.get with /locations/reverse and lat/lng params", async () => {
+      const geocodeData = {
+        displayName: "New York City Hall",
+        address: "260 Broadway",
+        city: "New York",
+        state: "NY",
+        country: "US",
+      };
+
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: geocodeData });
+
+      const result = await reverseGeocode(40.7128, -74.006);
+
+      expect(apiClient.get).toHaveBeenCalledWith("/locations/reverse", {
+        params: { lat: 40.7128, lng: -74.006 },
+      });
+      expect(result).toEqual(geocodeData);
     });
   });
 });
