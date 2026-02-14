@@ -59,8 +59,7 @@ export function VideoSubmitForm() {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
-        if (status === 400)
-          setUrlError("Please enter a valid YouTube URL.");
+        if (status === 400) setUrlError("Please enter a valid YouTube URL.");
         else if (status === 422)
           setUrlError("This video is unavailable or private.");
         else setUrlError("Failed to fetch video info. Please try again.");

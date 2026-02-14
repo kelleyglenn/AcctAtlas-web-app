@@ -8,9 +8,7 @@ export function YouTubePreview({ preview }: YouTubePreviewProps) {
   const minutes = preview.durationSeconds
     ? Math.floor(preview.durationSeconds / 60)
     : null;
-  const seconds = preview.durationSeconds
-    ? preview.durationSeconds % 60
-    : null;
+  const seconds = preview.durationSeconds ? preview.durationSeconds % 60 : null;
 
   return (
     <div className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">

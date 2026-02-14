@@ -55,8 +55,7 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
   const locationState = primaryLocation?.location?.state;
 
   const isModerator =
-    user?.trustTier === "MODERATOR" ||
-    user?.trustTier === "VERIFIED";
+    user?.trustTier === "MODERATOR" || user?.trustTier === "VERIFIED";
   const isOwner = user?.id === video.submittedBy;
   const showStatus = isModerator || isOwner;
   const showModControls = isModerator && video.status === "PENDING";
@@ -64,9 +63,7 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
   const durationMin = video.durationSeconds
     ? Math.floor(video.durationSeconds / 60)
     : null;
-  const durationSec = video.durationSeconds
-    ? video.durationSeconds % 60
-    : null;
+  const durationSec = video.durationSeconds ? video.durationSeconds % 60 : null;
 
   const formatAmendmentLabel = (amendment: string) => {
     const opt = AMENDMENT_OPTIONS.find((o) => o.amendment === amendment);
@@ -107,14 +104,12 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
             )}
             {video.publishedAt && (
               <span>
-                Published{" "}
-                {new Date(video.publishedAt).toLocaleDateString()}
+                Published {new Date(video.publishedAt).toLocaleDateString()}
               </span>
             )}
             {video.videoDate && (
               <span>
-                Incident date:{" "}
-                {new Date(video.videoDate).toLocaleDateString()}
+                Incident date: {new Date(video.videoDate).toLocaleDateString()}
               </span>
             )}
           </div>

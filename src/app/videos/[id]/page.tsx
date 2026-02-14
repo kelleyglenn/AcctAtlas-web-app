@@ -4,8 +4,7 @@ import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const VideoDetail = dynamic(
-  () =>
-    import("@/components/video/VideoDetail").then((mod) => mod.VideoDetail),
+  () => import("@/components/video/VideoDetail").then((mod) => mod.VideoDetail),
   { ssr: false }
 );
 
