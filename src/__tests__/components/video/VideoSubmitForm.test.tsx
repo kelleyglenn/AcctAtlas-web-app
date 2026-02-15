@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { VideoSubmitForm } from "@/components/video/VideoSubmitForm";
 import { previewVideo, createVideo } from "@/lib/api/videos";
-import { createLocation } from "@/lib/api/locations";
+import { createLocation, reverseGeocode } from "@/lib/api/locations";
 import type { VideoPreview } from "@/types/api";
 
 // Mock next/navigation
@@ -19,6 +19,7 @@ jest.mock("@/lib/api/videos", () => ({
 
 jest.mock("@/lib/api/locations", () => ({
   createLocation: jest.fn(),
+  reverseGeocode: jest.fn(),
 }));
 
 // Mock react-map-gl/mapbox
@@ -27,14 +28,20 @@ jest.mock("react-map-gl/mapbox", () => {
     (
       {
         children,
+        onClick,
         ...props
       }: {
         children?: React.ReactNode;
+        onClick?: (e: { lngLat: { lng: number; lat: number } }) => void;
         [key: string]: unknown;
       },
       _ref: React.Ref<unknown>
     ) => (
-      <div data-testid="mock-map" data-cursor={props.cursor}>
+      <div
+        data-testid="mock-map"
+        data-cursor={props.cursor}
+        onClick={() => onClick?.({ lngLat: { lng: -74.006, lat: 40.7128 } })}
+      >
         {children}
       </div>
     )
@@ -104,6 +111,11 @@ const existingPreview: VideoPreview = {
 describe("VideoSubmitForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Toast uses crypto.randomUUID which isn't available in jsdom
+    Object.defineProperty(global, "crypto", {
+      value: { randomUUID: () => "test-uuid" },
+      writable: true,
+    });
   });
 
   it("renders YouTube URL input and Preview button", () => {
@@ -355,5 +367,78 @@ describe("VideoSubmitForm", () => {
     // Click again to deselect
     fireEvent.click(policeChip);
     expect(policeChip.closest("span")).not.toHaveClass("bg-blue-600");
+  });
+
+  it("submits video after selecting amendments, participants, and location", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (reverseGeocode as jest.Mock).mockResolvedValue({
+      displayName: "New York City Hall",
+      address: "260 Broadway",
+      city: "New York",
+      state: "NY",
+      country: "US",
+    });
+    (createLocation as jest.Mock).mockResolvedValue({
+      id: "loc-new-1",
+      displayName: "New York City Hall",
+    });
+    (createVideo as jest.Mock).mockResolvedValue({
+      id: "video-new-1",
+      youtubeId: "abc123",
+      title: "First Amendment Audit - City Hall",
+      amendments: ["FIRST"],
+      participants: ["POLICE"],
+      status: "PENDING",
+    });
+
+    render(<VideoSubmitForm />);
+
+    // Step 1: Preview
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Submit Video")).toBeInTheDocument();
+    });
+
+    // Step 2: Select amendment and participant
+    fireEvent.click(screen.getByText("1st Amendment"));
+    fireEvent.click(screen.getByText("Police"));
+
+    // Step 3: Click map to place location
+    fireEvent.click(screen.getByTestId("mock-map"));
+
+    // Wait for reverse geocode to resolve
+    await waitFor(() => {
+      expect(reverseGeocode).toHaveBeenCalledWith(40.7128, -74.006);
+    });
+
+    // Step 4: Submit
+    fireEvent.click(screen.getByText("Submit Video"));
+
+    await waitFor(() => {
+      expect(createLocation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coordinates: { latitude: 40.7128, longitude: -74.006 },
+          displayName: "New York City Hall",
+        })
+      );
+    });
+
+    expect(createVideo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        youtubeUrl: "https://www.youtube.com/watch?v=abc123",
+        amendments: ["FIRST"],
+        participants: ["POLICE"],
+        locationId: "loc-new-1",
+      })
+    );
+
+    expect(mockPush).toHaveBeenCalledWith("/videos/video-new-1");
   });
 });

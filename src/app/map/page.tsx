@@ -25,11 +25,14 @@ function MapPageContent() {
   const lng = searchParams.get("lng");
   const zoom = searchParams.get("zoom");
 
+  const parsedLat = lat ? parseFloat(lat) : NaN;
+  const parsedLng = lng ? parseFloat(lng) : NaN;
+
   const initialViewport =
-    lat && lng
+    Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
       ? {
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lng),
+          latitude: parsedLat,
+          longitude: parsedLng,
           zoom: zoom ? parseInt(zoom, 10) : 14,
         }
       : undefined;

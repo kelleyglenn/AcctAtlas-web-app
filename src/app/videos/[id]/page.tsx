@@ -10,7 +10,9 @@ const VideoDetail = dynamic(
 
 export default function VideoPage() {
   const params = useParams();
-  const videoId = params.id as string;
+  const videoId = Array.isArray(params.id)
+    ? params.id[0]
+    : (params.id as string);
 
   return <VideoDetail videoId={videoId} />;
 }
