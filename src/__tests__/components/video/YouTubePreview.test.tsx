@@ -31,9 +31,9 @@ describe("YouTubePreview", () => {
     render(<YouTubePreview preview={basePreview} />);
     const img = screen.getByAltText("First Amendment Audit - City Hall");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute(
-      "src",
-      "https://img.youtube.com/vi/abc123/hqdefault.jpg"
+    // Next.js <Image> rewrites src through its image optimizer
+    expect(img.getAttribute("src")).toContain(
+      encodeURIComponent("https://img.youtube.com/vi/abc123/hqdefault.jpg")
     );
   });
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { VideoPreview } from "@/types/api";
 
 interface YouTubePreviewProps {
@@ -12,9 +13,11 @@ export function YouTubePreview({ preview }: YouTubePreviewProps) {
 
   return (
     <div className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <img
+      <Image
         src={preview.thumbnailUrl}
         alt={preview.title}
+        width={160}
+        height={90}
         className="w-40 h-24 object-cover rounded flex-shrink-0"
       />
       <div className="min-w-0">
