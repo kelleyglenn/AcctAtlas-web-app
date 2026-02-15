@@ -11,6 +11,13 @@ const customJestConfig = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts", "!src/app/**"],
+  reporters: [
+    "default",
+    [
+      "jest-junit",
+      { outputDirectory: "test-results", outputName: "junit.xml" },
+    ],
+  ],
   coverageThreshold: {
     "./src/hooks/": {
       statements: 80,
