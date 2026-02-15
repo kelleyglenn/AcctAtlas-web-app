@@ -42,3 +42,110 @@ export interface ApiError {
   code: string;
   message: string;
 }
+
+export interface VideoPreview {
+  youtubeId: string;
+  title: string;
+  description?: string;
+  thumbnailUrl: string;
+  durationSeconds?: number;
+  channelId: string;
+  channelName: string;
+  publishedAt: string;
+  alreadyExists: boolean;
+  existingVideoId?: string;
+}
+
+export interface VideoDetailResponse {
+  id: string;
+  youtubeId: string;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  durationSeconds?: number;
+  channelId: string;
+  channelName: string;
+  publishedAt: string;
+  videoDate?: string;
+  amendments: string[];
+  participants: string[];
+  status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED";
+  submittedBy: string;
+  createdAt: string;
+  locations: VideoLocationDetail[];
+  submitter?: {
+    id: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface VideoLocationDetail {
+  id: string;
+  videoId: string;
+  locationId: string;
+  isPrimary: boolean;
+  location?: {
+    id: string;
+    displayName: string;
+    city?: string;
+    state?: string;
+    coordinates?: { latitude: number; longitude: number };
+  };
+}
+
+export interface CreateVideoRequest {
+  youtubeUrl: string;
+  amendments: string[];
+  participants: string[];
+  videoDate?: string;
+  locationId?: string;
+}
+
+export interface CreateLocationRequest {
+  coordinates: { latitude: number; longitude: number };
+  displayName: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+export interface CreateLocationResponse {
+  id: string;
+  displayName: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ReverseGeocodeResponse {
+  displayName: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+export interface ModerationItem {
+  id: string;
+  contentType: "VIDEO" | "LOCATION";
+  contentId: string;
+  submitterId: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  reviewerId?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
+export interface ModerationQueueResponse {
+  content: ModerationItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { MapProvider } from "@/providers/MapProvider";
 
@@ -10,17 +12,48 @@ const MapContainer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-screen bg-gray-100 flex items-center justify-center">
+      <div className="h-[calc(100vh-3.5rem)] bg-gray-100 flex items-center justify-center">
         <div className="text-gray-500">Loading map...</div>
       </div>
     ),
   }
 );
 
-export default function MapPage() {
+function MapPageContent() {
+  const searchParams = useSearchParams();
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+  const zoom = searchParams.get("zoom");
+
+  const parsedLat = lat ? parseFloat(lat) : NaN;
+  const parsedLng = lng ? parseFloat(lng) : NaN;
+
+  const initialViewport =
+    Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
+      ? {
+          latitude: parsedLat,
+          longitude: parsedLng,
+          zoom: zoom ? parseInt(zoom, 10) : 14,
+        }
+      : undefined;
+
   return (
-    <MapProvider>
+    <MapProvider initialViewport={initialViewport}>
       <MapContainer />
     </MapProvider>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-[calc(100vh-3.5rem)] bg-gray-100 flex items-center justify-center">
+          <div className="text-gray-500">Loading map...</div>
+        </div>
+      }
+    >
+      <MapPageContent />
+    </Suspense>
   );
 }

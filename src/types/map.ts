@@ -156,8 +156,7 @@ export function formatAmendment(amendment: string): string {
 // Values must match the API format (uppercase)
 export const PARTICIPANT_TYPE_OPTIONS = [
   { id: "POLICE", label: "Police" },
-  { id: "SECURITY", label: "Security" },
   { id: "GOVERNMENT", label: "Government" },
   { id: "BUSINESS", label: "Business" },
-  { id: "CIVILIAN", label: "Civilian" },
+  { id: "CITIZEN", label: "Citizen" },
 ];

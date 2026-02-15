@@ -47,12 +47,12 @@ describe("ParticipantFilter", () => {
     renderWithProvider(<ParticipantFilter />);
 
     const policeOption = screen.getByText("Police");
-    const securityOption = screen.getByText("Security");
+    const governmentOption = screen.getByText("Government");
 
     fireEvent.click(policeOption);
-    fireEvent.click(securityOption);
+    fireEvent.click(governmentOption);
 
     expect(policeOption).toHaveClass("bg-blue-600");
-    expect(securityOption).toHaveClass("bg-blue-600");
+    expect(governmentOption).toHaveClass("bg-blue-600");
   });
 });
