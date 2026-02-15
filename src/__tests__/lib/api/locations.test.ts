@@ -120,8 +120,7 @@ describe("api/locations", () => {
   describe("createLocation", () => {
     it("calls apiClient.post with /locations and request body, returns response.data", async () => {
       const requestData = {
-        latitude: 40.7128,
-        longitude: -74.006,
+        coordinates: { latitude: 40.7128, longitude: -74.006 },
         displayName: "New York City Hall",
         address: "260 Broadway",
         city: "New York",

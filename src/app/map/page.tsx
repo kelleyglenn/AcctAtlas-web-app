@@ -30,7 +30,7 @@ function MapPageContent() {
       ? {
           latitude: parseFloat(lat),
           longitude: parseFloat(lng),
-          zoom: zoom ? parseInt(zoom) : 14,
+          zoom: zoom ? parseInt(zoom, 10) : 14,
         }
       : undefined;
 

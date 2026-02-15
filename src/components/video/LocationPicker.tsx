@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import { SearchBox } from "@mapbox/search-js-react";
 import { MAPBOX_ACCESS_TOKEN, MAPBOX_STYLE } from "@/config/mapbox";
@@ -32,31 +32,37 @@ export function LocationPicker({
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  const placeMarker = useCallback(
-    async (lat: number, lng: number) => {
-      setMarker({ lat, lng });
-      setIsGeocoding(true);
-      setGeocodeResult(null);
+  const onLocationChangeRef = useRef(onLocationChange);
+  useEffect(() => {
+    onLocationChangeRef.current = onLocationChange;
+  }, [onLocationChange]);
 
-      try {
-        const result = await reverseGeocode(lat, lng);
-        setGeocodeResult(result);
-        onLocationChange({ latitude: lat, longitude: lng, geocode: result });
-      } catch {
-        setGeocodeResult(null);
-        onLocationChange({
-          latitude: lat,
-          longitude: lng,
-          geocode: {
-            displayName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-          },
-        });
-      } finally {
-        setIsGeocoding(false);
-      }
-    },
-    [onLocationChange]
-  );
+  const placeMarker = useCallback(async (lat: number, lng: number) => {
+    setMarker({ lat, lng });
+    setIsGeocoding(true);
+    setGeocodeResult(null);
+
+    try {
+      const result = await reverseGeocode(lat, lng);
+      setGeocodeResult(result);
+      onLocationChangeRef.current({
+        latitude: lat,
+        longitude: lng,
+        geocode: result,
+      });
+    } catch {
+      setGeocodeResult(null);
+      onLocationChangeRef.current({
+        latitude: lat,
+        longitude: lng,
+        geocode: {
+          displayName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+        },
+      });
+    } finally {
+      setIsGeocoding(false);
+    }
+  }, []);
 
   const handleSearchRetrieve = useCallback(
     (res: { features: { geometry: { coordinates: number[] } }[] }) => {

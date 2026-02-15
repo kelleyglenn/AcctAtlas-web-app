@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -270,12 +271,12 @@ export function VideoSubmitForm() {
           <p className="mt-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
             This video has already been submitted.{" "}
             {preview.existingVideoId && (
-              <a
+              <Link
                 href={`/videos/${preview.existingVideoId}`}
                 className="underline font-medium"
               >
                 View it here.
-              </a>
+              </Link>
             )}
           </p>
         </div>
