@@ -75,6 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const logout = useCallback(() => {
+    authApi.logout().catch(() => {});
     setUser(null);
     setAccessToken(null);
     sessionStorage.removeItem("accessToken");
