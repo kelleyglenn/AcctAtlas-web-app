@@ -13,6 +13,7 @@ jest.mock("@/lib/api/client", () => ({
 jest.mock("@/lib/api/auth", () => ({
   login: jest.fn(),
   register: jest.fn(),
+  logout: jest.fn(),
 }));
 
 jest.mock("@/lib/api/users", () => ({
@@ -26,6 +27,7 @@ const mockLogin = authApi.login as jest.MockedFunction<typeof authApi.login>;
 const mockRegister = authApi.register as jest.MockedFunction<
   typeof authApi.register
 >;
+const mockLogout = authApi.logout as jest.MockedFunction<typeof authApi.logout>;
 const mockGetCurrentUser = usersApi.getCurrentUser as jest.MockedFunction<
   typeof usersApi.getCurrentUser
 >;
@@ -151,6 +153,7 @@ describe("AuthProvider", () => {
   describe("logout", () => {
     it("should clear user, token, and sessionStorage", async () => {
       mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      mockLogout.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -174,6 +177,34 @@ describe("AuthProvider", () => {
       expect(result.current.isAuthenticated).toBe(false);
       expect(mockSetAccessToken).toHaveBeenCalledWith(null);
       expect(sessionStorage.getItem("accessToken")).toBeNull();
+      expect(mockLogout).toHaveBeenCalled();
+    });
+
+    it("should clear state even when backend logout fails", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      mockLogout.mockRejectedValueOnce(new Error("Network error"));
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      expect(result.current.isAuthenticated).toBe(true);
+
+      act(() => {
+        result.current.logout();
+      });
+
+      expect(result.current.user).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(mockSetAccessToken).toHaveBeenCalledWith(null);
+      expect(sessionStorage.getItem("accessToken")).toBeNull();
+      expect(mockLogout).toHaveBeenCalled();
     });
   });
 
