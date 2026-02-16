@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "./client";
 import type { ModerationQueueResponse, ModerationItem } from "@/types/api";
 
@@ -39,4 +40,25 @@ export async function rejectItem(
     { reason }
   );
   return response.data;
+}
+
+/**
+ * Get a moderation item by its content ID (e.g., video ID)
+ */
+export async function getModerationItemByContentId(
+  contentId: string,
+  status: string = "PENDING"
+): Promise<ModerationItem | null> {
+  try {
+    const response = await apiClient.get<ModerationItem>(
+      `/moderation/queue/by-content/${contentId}`,
+      { params: { status } }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }

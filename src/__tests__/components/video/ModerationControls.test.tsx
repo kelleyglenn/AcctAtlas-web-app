@@ -3,7 +3,7 @@ import { ModerationControls } from "@/components/video/ModerationControls";
 
 // Mock the moderation API functions
 jest.mock("@/lib/api/moderation", () => ({
-  getModerationQueue: jest.fn(),
+  getModerationItemByContentId: jest.fn(),
   approveItem: jest.fn(),
   rejectItem: jest.fn(),
 }));
