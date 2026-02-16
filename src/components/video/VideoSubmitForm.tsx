@@ -12,7 +12,11 @@ import { previewVideo, createVideo } from "@/lib/api/videos";
 import { createLocation } from "@/lib/api/locations";
 import { useToasts, ToastContainer } from "@/components/ui/Toast";
 import { AMENDMENT_OPTIONS, PARTICIPANT_TYPE_OPTIONS } from "@/types/map";
-import type { VideoPreview, ReverseGeocodeResponse } from "@/types/api";
+import type {
+  VideoPreview,
+  ReverseGeocodeResponse,
+  ApiErrorDetail,
+} from "@/types/api";
 import axios from "axios";
 
 export function VideoSubmitForm() {
@@ -138,8 +142,30 @@ export function VideoSubmitForm() {
       success("Video submitted successfully!");
       router.push(`/videos/${video.id}`);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
-        showError("This video has already been submitted.");
+      if (axios.isAxiosError(err) && err.response) {
+        const status = err.response.status;
+        if (status === 409) {
+          showError("This video has already been submitted.");
+        } else if (status === 400 && err.response.data?.details) {
+          const details = err.response.data.details as ApiErrorDetail[];
+          for (const detail of details) {
+            if (detail.field === "amendments")
+              setAmendmentError(detail.message);
+            else if (detail.field === "participants")
+              setParticipantError(detail.message);
+            else if (detail.field === "locationId")
+              setLocationError(detail.message);
+          }
+          if (
+            !details.some((d) =>
+              ["amendments", "participants", "locationId"].includes(d.field)
+            )
+          ) {
+            showError(err.response.data.message || "Validation failed.");
+          }
+        } else {
+          showError("Failed to submit video. Please try again.");
+        }
       } else {
         showError("Failed to submit video. Please try again.");
       }

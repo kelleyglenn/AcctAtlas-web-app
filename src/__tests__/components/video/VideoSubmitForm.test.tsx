@@ -441,4 +441,115 @@ describe("VideoSubmitForm", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/videos/video-new-1");
   });
+
+  it("displays field-specific validation errors from 400 response", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (reverseGeocode as jest.Mock).mockResolvedValue({
+      displayName: "Test Location",
+      city: "Test City",
+      state: "TS",
+      country: "US",
+    });
+    (createLocation as jest.Mock).mockResolvedValue({
+      id: "loc-1",
+      displayName: "Test Location",
+    });
+    (createVideo as jest.Mock).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          code: "VALIDATION_ERROR",
+          message: "Request validation failed",
+          details: [
+            {
+              field: "amendments",
+              message: "size must be between 1 and 2147483647",
+            },
+          ],
+        },
+      },
+    });
+
+    render(<VideoSubmitForm />);
+
+    // Preview
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+    await waitFor(() => {
+      expect(screen.getByText("Submit Video")).toBeInTheDocument();
+    });
+
+    // Select fields to pass client-side validation
+    fireEvent.click(screen.getByText("1st Amendment"));
+    fireEvent.click(screen.getByText("Police"));
+    fireEvent.click(screen.getByTestId("mock-map"));
+    await waitFor(() => {
+      expect(reverseGeocode).toHaveBeenCalled();
+    });
+
+    // Submit
+    fireEvent.click(screen.getByText("Submit Video"));
+
+    // Verify field-specific error is shown
+    await waitFor(() => {
+      expect(
+        screen.getByText("size must be between 1 and 2147483647")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("shows generic error for non-validation server errors", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (reverseGeocode as jest.Mock).mockResolvedValue({
+      displayName: "Test Location",
+      city: "Test City",
+      state: "TS",
+      country: "US",
+    });
+    (createLocation as jest.Mock).mockResolvedValue({
+      id: "loc-1",
+      displayName: "Test Location",
+    });
+    (createVideo as jest.Mock).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 500 },
+    });
+
+    render(<VideoSubmitForm />);
+
+    // Preview
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+    await waitFor(() => {
+      expect(screen.getByText("Submit Video")).toBeInTheDocument();
+    });
+
+    // Select fields
+    fireEvent.click(screen.getByText("1st Amendment"));
+    fireEvent.click(screen.getByText("Police"));
+    fireEvent.click(screen.getByTestId("mock-map"));
+    await waitFor(() => {
+      expect(reverseGeocode).toHaveBeenCalled();
+    });
+
+    // Submit
+    fireEvent.click(screen.getByText("Submit Video"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to submit video. Please try again.")
+      ).toBeInTheDocument();
+    });
+  });
 });
