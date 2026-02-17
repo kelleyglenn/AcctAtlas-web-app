@@ -58,8 +58,7 @@ export default function PublicProfilePage() {
 
           <div className="space-y-2 text-sm text-gray-600">
             <p>
-              Member since{" "}
-              {new Date(profile.memberSince).toLocaleDateString()}
+              Member since {new Date(profile.memberSince).toLocaleDateString()}
             </p>
             <p>
               {profile.approvedVideoCount} approved video

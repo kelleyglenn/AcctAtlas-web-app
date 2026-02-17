@@ -10,10 +10,7 @@ import { ProfileInfoForm } from "@/components/profile/ProfileInfoForm";
 import { SocialLinksForm } from "@/components/profile/SocialLinksForm";
 import { PrivacySettingsForm } from "@/components/profile/PrivacySettingsForm";
 import { MySubmissions } from "@/components/profile/MySubmissions";
-import {
-  ToastContainer,
-  useToasts,
-} from "@/components/ui/Toast";
+import { ToastContainer, useToasts } from "@/components/ui/Toast";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -137,11 +134,7 @@ export default function ProfilePage() {
               Back to Home
             </Button>
           </Link>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={handleLogout}
-          >
+          <Button variant="secondary" className="w-full" onClick={handleLogout}>
             Sign Out
           </Button>
         </div>

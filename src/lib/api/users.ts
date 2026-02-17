@@ -6,16 +6,12 @@ export async function getCurrentUser(): Promise<User> {
   return response.data;
 }
 
-export async function updateProfile(
-  data: UpdateProfileRequest
-): Promise<User> {
+export async function updateProfile(data: UpdateProfileRequest): Promise<User> {
   const response = await apiClient.put<User>("/users/me", data);
   return response.data;
 }
 
-export async function getPublicProfile(
-  userId: string
-): Promise<PublicProfile> {
+export async function getPublicProfile(userId: string): Promise<PublicProfile> {
   const response = await apiClient.get<PublicProfile>(`/users/${userId}`);
   return response.data;
 }
