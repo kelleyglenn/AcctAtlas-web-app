@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import {
   approveItem,
   rejectItem,
-  getModerationQueue,
+  getModerationItemByContentId,
 } from "@/lib/api/moderation";
 
 interface ModerationControlsProps {
@@ -24,12 +24,7 @@ export function ModerationControls({
   const [error, setError] = useState("");
 
   const findModerationItemId = async (): Promise<string | null> => {
-    const queue = await getModerationQueue({
-      contentType: "VIDEO",
-      status: "PENDING",
-      size: 100,
-    });
-    const item = queue.content.find((i) => i.contentId === videoId);
+    const item = await getModerationItemByContentId(videoId);
     return item?.id ?? null;
   };
 
