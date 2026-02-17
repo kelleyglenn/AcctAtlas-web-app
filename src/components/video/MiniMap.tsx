@@ -12,6 +12,7 @@ interface MiniMapProps {
 export function MiniMap({ latitude, longitude }: MiniMapProps) {
   return (
     <div
+      data-testid="mini-map"
       className="rounded-lg overflow-hidden border border-gray-200"
       style={{ height: 250 }}
     >
