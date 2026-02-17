@@ -1,7 +1,8 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { getMyVideos } from "@/lib/api/videos";
+import { getUserVideos } from "@/lib/api/videos";
 import Link from "next/link";
+import { useAuth } from "@/providers/AuthProvider";
 
 const STATUS_STYLES = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -11,9 +12,11 @@ const STATUS_STYLES = {
 } as const;
 
 export function MySubmissions() {
+  const { user } = useAuth();
   const { data: videos, isLoading } = useQuery({
-    queryKey: ["my-videos"],
-    queryFn: getMyVideos,
+    queryKey: ["my-videos", user?.id],
+    queryFn: () => getUserVideos(user!.id),
+    enabled: !!user?.id,
   });
 
   if (isLoading)

@@ -34,14 +34,13 @@ export async function createVideo(
 }
 
 /**
- * Get videos submitted by the current user
+ * Get videos submitted by the given user
  */
-export async function getMyVideos(): Promise<VideoDetailResponse[]> {
+export async function getUserVideos(
+  userId: string
+): Promise<VideoDetailResponse[]> {
   const response = await apiClient.get<{ content: VideoDetailResponse[] }>(
-    "/videos",
-    {
-      params: { submittedBy: "me" },
-    }
+    `/videos/user/${userId}`
   );
   return response.data.content;
 }
