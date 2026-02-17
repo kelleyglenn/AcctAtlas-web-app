@@ -1,5 +1,40 @@
 export type TrustTier = "NEW" | "BASIC" | "TRUSTED" | "VERIFIED" | "MODERATOR";
 
+export interface SocialLinks {
+  youtube?: string;
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  xTwitter?: string;
+  bluesky?: string;
+}
+
+export interface PrivacySettings {
+  socialLinksVisibility: "PUBLIC" | "REGISTERED";
+  submissionsVisibility: "PUBLIC" | "REGISTERED";
+}
+
+export interface AvatarSources {
+  gravatar?: string;
+  youtube?: string;
+}
+
+export interface UpdateProfileRequest {
+  displayName?: string;
+  avatarUrl?: string;
+  socialLinks?: SocialLinks;
+  privacySettings?: PrivacySettings;
+}
+
+export interface PublicProfile {
+  id: string;
+  displayName: string;
+  avatarUrl?: string;
+  memberSince: string;
+  approvedVideoCount: number;
+  socialLinks?: SocialLinks;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -8,6 +43,9 @@ export interface User {
   avatarUrl?: string;
   trustTier: TrustTier;
   createdAt?: string;
+  socialLinks?: SocialLinks;
+  privacySettings?: PrivacySettings;
+  avatarSources?: AvatarSources;
 }
 
 export interface TokenPair {
@@ -76,6 +114,7 @@ export interface VideoDetailResponse {
   amendments: string[];
   participants: string[];
   status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED";
+  rejectionReason?: string;
   submittedBy: string;
   createdAt: string;
   locations: VideoLocationDetail[];

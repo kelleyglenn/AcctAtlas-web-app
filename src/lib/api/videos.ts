@@ -32,3 +32,16 @@ export async function createVideo(
   const response = await apiClient.post<VideoDetailResponse>("/videos", data);
   return response.data;
 }
+
+/**
+ * Get videos submitted by the current user
+ */
+export async function getMyVideos(): Promise<VideoDetailResponse[]> {
+  const response = await apiClient.get<{ content: VideoDetailResponse[] }>(
+    "/videos",
+    {
+      params: { submittedBy: "me" },
+    }
+  );
+  return response.data.content;
+}
