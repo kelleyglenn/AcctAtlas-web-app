@@ -13,7 +13,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "check": "npm run format:check && npm run lint && npm run test:coverage"
+    "check": "npm run format:check && npm run lint && npm run test:coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mapbox/search-js-react": "^1.5.1",
@@ -27,6 +28,9 @@
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.0"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": "prettier --write"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
@@ -38,9 +42,11 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.2.22",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-junit": "^16.0.0",
+    "lint-staged": "^16.2.7",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.17",
