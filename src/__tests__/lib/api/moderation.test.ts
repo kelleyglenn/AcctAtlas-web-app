@@ -157,10 +157,7 @@ describe("api/moderation", () => {
 
       (apiClient.get as jest.Mock).mockResolvedValue({ data: item });
 
-      const result = await getModerationItemByContentId(
-        "video-1",
-        "APPROVED"
-      );
+      const result = await getModerationItemByContentId("video-1", "APPROVED");
 
       expect(apiClient.get).toHaveBeenCalledWith(
         "/moderation/queue/by-content/video-1",
@@ -194,9 +191,9 @@ describe("api/moderation", () => {
 
       (apiClient.get as jest.Mock).mockRejectedValue(axiosError);
 
-      await expect(
-        getModerationItemByContentId("video-1")
-      ).rejects.toThrow("Internal Server Error");
+      await expect(getModerationItemByContentId("video-1")).rejects.toThrow(
+        "Internal Server Error"
+      );
     });
 
     it("re-throws non-axios errors", async () => {
@@ -204,9 +201,9 @@ describe("api/moderation", () => {
         new TypeError("Network failure")
       );
 
-      await expect(
-        getModerationItemByContentId("video-1")
-      ).rejects.toThrow("Network failure");
+      await expect(getModerationItemByContentId("video-1")).rejects.toThrow(
+        "Network failure"
+      );
     });
   });
 });
