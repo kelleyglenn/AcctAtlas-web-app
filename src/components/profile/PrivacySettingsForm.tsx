@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { updateProfile } from "@/lib/api/users";
 import type { PrivacySettings, User } from "@/types/api";
 
@@ -22,10 +21,11 @@ export function PrivacySettingsForm({
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async () => {
+  const handleToggle = async (newSettings: PrivacySettings) => {
+    setSettings(newSettings);
     setIsSaving(true);
     try {
-      const updated = await updateProfile({ privacySettings: settings });
+      const updated = await updateProfile({ privacySettings: newSettings });
       onUpdate(updated);
       onSuccess();
     } catch {
@@ -42,11 +42,12 @@ export function PrivacySettingsForm({
           type="checkbox"
           checked={settings.socialLinksVisibility === "PUBLIC"}
           onChange={(e) =>
-            setSettings((prev) => ({
-              ...prev,
+            handleToggle({
+              ...settings,
               socialLinksVisibility: e.target.checked ? "PUBLIC" : "REGISTERED",
-            }))
+            })
           }
+          disabled={isSaving}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <span className="text-sm text-gray-700">
@@ -58,22 +59,18 @@ export function PrivacySettingsForm({
           type="checkbox"
           checked={settings.submissionsVisibility === "PUBLIC"}
           onChange={(e) =>
-            setSettings((prev) => ({
-              ...prev,
+            handleToggle({
+              ...settings,
               submissionsVisibility: e.target.checked ? "PUBLIC" : "REGISTERED",
-            }))
+            })
           }
+          disabled={isSaving}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <span className="text-sm text-gray-700">
           Submissions visible to everyone
         </span>
       </label>
-      <div className="flex justify-end">
-        <Button onClick={handleSave} isLoading={isSaving}>
-          Save
-        </Button>
-      </div>
     </div>
   );
 }

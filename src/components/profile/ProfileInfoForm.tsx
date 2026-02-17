@@ -38,6 +38,7 @@ export function ProfileInfoForm({
   return (
     <div className="space-y-4">
       <Input
+        name="displayName"
         label="Display Name"
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}

@@ -72,6 +72,7 @@ export function SocialLinksForm({
       {fields.map(({ key, label, placeholder }) => (
         <Input
           key={key}
+          name={key}
           label={label}
           value={links[key] || ""}
           onChange={(e) => handleChange(key, e.target.value)}
