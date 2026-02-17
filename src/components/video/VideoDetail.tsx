@@ -149,9 +149,12 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
           {isAuthenticated && video.submitter && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>Submitted by</span>
-              <span className="font-medium text-gray-700">
+              <Link
+                href={`/users/${video.submitter.id}`}
+                className="font-medium text-blue-600 hover:underline"
+              >
                 {video.submitter.displayName}
-              </span>
+              </Link>
             </div>
           )}
         </div>
