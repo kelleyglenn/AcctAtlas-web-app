@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { getVideo } from "@/lib/api/videos";
+import { getPublicProfile } from "@/lib/api/users";
 import { Chip } from "@/components/ui/Chip";
 import { MiniMap } from "@/components/video/MiniMap";
 import { ModerationControls } from "@/components/video/ModerationControls";
@@ -26,6 +27,12 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
   } = useQuery({
     queryKey: ["video", videoId],
     queryFn: () => getVideo(videoId),
+  });
+
+  const { data: submitterProfile } = useQuery({
+    queryKey: ["user-profile", video?.submittedBy],
+    queryFn: () => getPublicProfile(video!.submittedBy),
+    enabled: isAuthenticated && !!video?.submittedBy && !video?.submitter,
   });
 
   if (isLoading) {
@@ -146,14 +153,14 @@ export function VideoDetail({ videoId }: VideoDetailProps) {
           )}
 
           {/* Submitter */}
-          {isAuthenticated && video.submitter && (
+          {isAuthenticated && (video.submitter || submitterProfile) && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>Submitted by</span>
               <Link
-                href={`/users/${video.submitter.id}`}
+                href={`/users/${video.submitter?.id ?? submitterProfile?.id}`}
                 className="font-medium text-blue-600 hover:underline"
               >
-                {video.submitter.displayName}
+                {video.submitter?.displayName ?? submitterProfile?.displayName}
               </Link>
             </div>
           )}
