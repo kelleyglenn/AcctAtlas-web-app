@@ -24,6 +24,12 @@ export default function ProfilePage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser();
+    }
+  }, [isAuthenticated, refreshUser]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
