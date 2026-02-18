@@ -53,6 +53,14 @@ export default function PublicProfilePage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {profile.displayName}
               </h1>
+              {profile.trustTier && (
+                <span
+                  className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  data-testid="trust-tier-badge"
+                >
+                  {profile.trustTier}
+                </span>
+              )}
             </div>
           </div>
 

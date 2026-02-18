@@ -30,6 +30,7 @@ export interface PublicProfile {
   id: string;
   displayName: string;
   avatarUrl?: string;
+  trustTier?: TrustTier;
   memberSince: string;
   approvedVideoCount: number;
   socialLinks?: SocialLinks;
