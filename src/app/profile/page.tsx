@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ProfileInfoForm } from "@/components/profile/ProfileInfoForm";
 import { SocialLinksForm } from "@/components/profile/SocialLinksForm";
 import { PrivacySettingsForm } from "@/components/profile/PrivacySettingsForm";
+import { AvatarPicker } from "@/components/profile/AvatarPicker";
 import { MySubmissions } from "@/components/profile/MySubmissions";
 import { ToastContainer, useToasts } from "@/components/ui/Toast";
 
@@ -55,21 +56,33 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-
-        <div className="space-y-3">
-          <ProfileField label="Email" value={user.email} />
-          <ProfileField label="Trust Tier" value={user.trustTier} />
-          <ProfileField
-            label="Email Verified"
-            value={user.emailVerified ? "Yes" : "No"}
-          />
-          {user.createdAt && (
-            <ProfileField
-              label="Member Since"
-              value={new Date(user.createdAt).toLocaleDateString()}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-start gap-6">
+            <AvatarPicker
+              user={user}
+              avatarSources={user.avatarSources}
+              onUpdate={handleUpdate}
+              onSuccess={handleSuccess}
+              onError={handleError}
             />
-          )}
+            <div className="flex-1 space-y-1">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {user.displayName}
+              </h1>
+              <span
+                className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                data-testid="trust-tier-badge"
+              >
+                {user.trustTier}
+              </span>
+              {user.createdAt && (
+                <p className="text-sm text-gray-500">
+                  Member since {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+              )}
+              <p className="text-sm text-gray-500">{user.email}</p>
+            </div>
+          </div>
         </div>
 
         <Card>
@@ -142,14 +155,5 @@ export default function ProfilePage() {
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </main>
-  );
-}
-
-function ProfileField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900">{value}</span>
-    </div>
   );
 }
