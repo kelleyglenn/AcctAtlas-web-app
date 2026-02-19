@@ -81,6 +81,7 @@ export function AvatarPicker({
           Change Avatar
         </Button>
       </div>
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
         ref={dialogRef}
         className="rounded-lg shadow-lg p-6 space-y-4 max-w-sm w-full mx-4 backdrop:bg-black/50"
@@ -88,6 +89,9 @@ export function AvatarPicker({
         data-testid="avatar-picker-modal"
         onClick={(e) => {
           if (e.target === dialogRef.current) closeDialog();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") closeDialog();
         }}
       >
         <h3 className="text-lg font-semibold text-gray-900">Choose Avatar</h3>
