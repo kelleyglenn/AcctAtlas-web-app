@@ -97,16 +97,8 @@ export interface VideoDetails {
   recordedAt?: string;
   createdAt: string;
   amendments: string[];
-  participants: Participant[];
+  participants: string[];
   location?: LocationDetails;
-}
-
-// Participant in a video
-export interface Participant {
-  id: string;
-  name: string;
-  role?: string;
-  organizationType?: string;
 }
 
 // Amendment filter options
@@ -159,4 +151,5 @@ export const PARTICIPANT_TYPE_OPTIONS = [
   { id: "GOVERNMENT", label: "Government" },
   { id: "BUSINESS", label: "Business" },
   { id: "CITIZEN", label: "Citizen" },
+  { id: "SECURITY", label: "Security" },
 ];
