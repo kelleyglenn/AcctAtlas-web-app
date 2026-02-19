@@ -5,11 +5,11 @@ import { updateProfile } from "@/lib/api/users";
 import type { User, AvatarSources } from "@/types/api";
 
 interface AvatarPickerProps {
-  user: User;
-  avatarSources?: AvatarSources;
-  onUpdate: (user: User) => void;
-  onSuccess: () => void;
-  onError: (msg: string) => void;
+  readonly user: User;
+  readonly avatarSources?: AvatarSources;
+  readonly onUpdate: (user: User) => void;
+  readonly onSuccess: () => void;
+  readonly onError: (msg: string) => void;
 }
 
 export function AvatarPicker({
@@ -79,13 +79,17 @@ export function AvatarPicker({
         </Button>
       </div>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={() => setIsOpen(false)}
-        >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <button
+            type="button"
+            className="absolute inset-0 w-full h-full cursor-default"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close avatar picker"
+          />
           <div
-            className="bg-white rounded-lg shadow-lg p-6 space-y-4 max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg shadow-lg p-6 space-y-4 max-w-sm w-full mx-4 relative z-10"
+            role="dialog"
+            aria-label="Choose Avatar"
             data-testid="avatar-picker-modal"
           >
             <h3 className="text-lg font-semibold text-gray-900">

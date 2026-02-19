@@ -4,10 +4,10 @@ import { updateProfile } from "@/lib/api/users";
 import type { PrivacySettings, User } from "@/types/api";
 
 interface PrivacySettingsFormProps {
-  privacySettings: PrivacySettings;
-  onUpdate: (user: User) => void;
-  onSuccess: () => void;
-  onError: (msg: string) => void;
+  readonly privacySettings: PrivacySettings;
+  readonly onUpdate: (user: User) => void;
+  readonly onSuccess: () => void;
+  readonly onError: (msg: string) => void;
 }
 
 export function PrivacySettingsForm({

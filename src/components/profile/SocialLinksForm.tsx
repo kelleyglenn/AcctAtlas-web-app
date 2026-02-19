@@ -6,10 +6,10 @@ import { updateProfile } from "@/lib/api/users";
 import type { SocialLinks, User } from "@/types/api";
 
 interface SocialLinksFormProps {
-  socialLinks: SocialLinks;
-  onUpdate: (user: User) => void;
-  onSuccess: () => void;
-  onError: (msg: string) => void;
+  readonly socialLinks: SocialLinks;
+  readonly onUpdate: (user: User) => void;
+  readonly onSuccess: () => void;
+  readonly onError: (msg: string) => void;
 }
 
 export function SocialLinksForm({

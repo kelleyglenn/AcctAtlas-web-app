@@ -7,7 +7,7 @@ import { getPublicProfile } from "@/lib/api/users";
 
 export default function PublicProfilePage() {
   const params = useParams();
-  const id = Array.isArray(params.id) ? params.id[0] : (params.id as string);
+  const id = Array.isArray(params.id) ? params.id[0] : String(params.id);
 
   const {
     data: profile,
@@ -70,7 +70,7 @@ export default function PublicProfilePage() {
             </p>
             <p>
               {profile.approvedVideoCount} approved video
-              {profile.approvedVideoCount !== 1 ? "s" : ""}
+              {profile.approvedVideoCount === 1 ? "" : "s"}
             </p>
           </div>
 
@@ -135,7 +135,10 @@ export default function PublicProfilePage() {
   );
 }
 
-function SocialLink({ label, href }: { label: string; href: string }) {
+function SocialLink({
+  label,
+  href,
+}: Readonly<{ label: string; href: string }>) {
   return (
     <a
       href={href}

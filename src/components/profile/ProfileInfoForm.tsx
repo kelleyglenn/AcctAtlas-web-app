@@ -6,10 +6,10 @@ import { updateProfile } from "@/lib/api/users";
 import type { User } from "@/types/api";
 
 interface ProfileInfoFormProps {
-  user: User;
-  onUpdate: (user: User) => void;
-  onSuccess: () => void;
-  onError: (msg: string) => void;
+  readonly user: User;
+  readonly onUpdate: (user: User) => void;
+  readonly onSuccess: () => void;
+  readonly onError: (msg: string) => void;
 }
 
 export function ProfileInfoForm({
