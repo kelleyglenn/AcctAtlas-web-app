@@ -1,6 +1,16 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AvatarPicker } from "@/components/profile/AvatarPicker";
 
+// jsdom doesn't implement HTMLDialogElement.showModal/close
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+});
+
 jest.mock("@/lib/api/users", () => ({
   updateProfile: jest.fn(),
 }));
@@ -193,9 +203,11 @@ describe("AvatarPicker", () => {
     );
 
     fireEvent.click(screen.getByTestId("change-avatar-button"));
-    expect(screen.getByTestId("avatar-picker-modal")).toBeInTheDocument();
+    expect(screen.getByTestId("avatar-picker-modal")).toHaveAttribute("open");
 
     fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.queryByTestId("avatar-picker-modal")).not.toBeInTheDocument();
+    expect(screen.getByTestId("avatar-picker-modal")).not.toHaveAttribute(
+      "open"
+    );
   });
 });
