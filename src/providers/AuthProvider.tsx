@@ -24,6 +24,7 @@ interface AuthContextType {
     displayName: string
   ) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,6 +82,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sessionStorage.removeItem("accessToken");
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const userData = await usersApi.getCurrentUser();
+      setUser(userData);
+    } catch {
+      // ignore - user data might be stale but that's ok
+    }
+  }, []);
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -88,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -63,7 +63,10 @@ describe("NavBar", () => {
     };
     render(<NavBar />);
     expect(screen.getByText("Submit Video")).toBeInTheDocument();
-    expect(screen.getByText("Test User")).toBeInTheDocument();
+    expect(screen.getByText("Test User").closest("a")).toHaveAttribute(
+      "href",
+      "/profile"
+    );
     expect(screen.getByText("Sign Out")).toBeInTheDocument();
   });
 });
