@@ -17,6 +17,11 @@ jest.mock("@/providers/AuthProvider", () => ({
   useAuth: () => mockAuth,
 }));
 
+let mockPathname = "/other";
+jest.mock("next/navigation", () => ({
+  usePathname: () => mockPathname,
+}));
+
 describe("NavBar", () => {
   beforeEach(() => {
     mockAuth = {
@@ -26,6 +31,7 @@ describe("NavBar", () => {
       logout: mockLogout,
     };
     mockLogout.mockClear();
+    mockPathname = "/other";
   });
 
   it("shows site name linking to home", () => {
@@ -68,5 +74,57 @@ describe("NavBar", () => {
       "/profile"
     );
     expect(screen.getByText("Sign Out")).toBeInTheDocument();
+  });
+
+  describe("conditional transparency", () => {
+    it("is transparent with no border on home page", () => {
+      mockPathname = "/";
+      render(<NavBar />);
+      const nav = screen.getByRole("navigation");
+      expect(nav.className).toContain("bg-transparent");
+      expect(nav.className).not.toContain("border-b");
+    });
+
+    it("is opaque white with border on non-home pages", () => {
+      mockPathname = "/map";
+      render(<NavBar />);
+      const nav = screen.getByRole("navigation");
+      expect(nav.className).toContain("bg-white");
+      expect(nav.className).toContain("border-b");
+    });
+
+    it("uses white text for logo on home page", () => {
+      mockPathname = "/";
+      render(<NavBar />);
+      const logo = screen.getByText("AccountabilityAtlas");
+      expect(logo.className).toContain("text-white");
+    });
+
+    it("uses dark text for logo on non-home pages", () => {
+      mockPathname = "/map";
+      render(<NavBar />);
+      const logo = screen.getByText("AccountabilityAtlas");
+      expect(logo.className).toContain("text-gray-900");
+    });
+
+    it("uses white border/text for outline buttons on home page via inline styles", () => {
+      mockPathname = "/";
+      render(<NavBar />);
+      const signIn = screen.getByText("Sign In");
+      expect(signIn).toHaveStyle({ borderColor: "white", color: "white" });
+    });
+
+    it("uses white text for authenticated links on home page", () => {
+      mockPathname = "/";
+      mockAuth = {
+        user: { id: "1", displayName: "Test User" },
+        isAuthenticated: true,
+        isLoading: false,
+        logout: mockLogout,
+      };
+      render(<NavBar />);
+      const profileLink = screen.getByText("Test User");
+      expect(profileLink.className).toContain("text-white");
+    });
   });
 });
