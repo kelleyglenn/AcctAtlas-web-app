@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import { updateProfile } from "@/lib/api/users";
-import type { PrivacySettings, User } from "@/types/api";
+import type { PrivacySettings } from "@/types/api";
 
 interface PrivacySettingsFormProps {
   readonly privacySettings: PrivacySettings;
-  readonly onUpdate: (user: User) => void;
+  readonly onUpdate: () => void;
   readonly onSuccess: () => void;
   readonly onError: (msg: string) => void;
 }
@@ -25,8 +25,8 @@ export function PrivacySettingsForm({
     setSettings(newSettings);
     setIsSaving(true);
     try {
-      const updated = await updateProfile({ privacySettings: newSettings });
-      onUpdate(updated);
+      await updateProfile({ privacySettings: newSettings });
+      onUpdate();
       onSuccess();
     } catch {
       onError("Failed to update privacy settings.");

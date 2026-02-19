@@ -7,7 +7,7 @@ import type { User } from "@/types/api";
 
 interface ProfileInfoFormProps {
   readonly user: User;
-  readonly onUpdate: (user: User) => void;
+  readonly onUpdate: () => void;
   readonly onSuccess: () => void;
   readonly onError: (msg: string) => void;
 }
@@ -25,8 +25,8 @@ export function ProfileInfoForm({
     if (!displayName.trim() || displayName.length < 2) return;
     setIsSaving(true);
     try {
-      const updated = await updateProfile({ displayName });
-      onUpdate(updated);
+      await updateProfile({ displayName });
+      onUpdate();
       onSuccess();
     } catch {
       onError("Failed to update profile.");

@@ -79,7 +79,7 @@ describe("SocialLinksForm", () => {
           socialLinks: expect.objectContaining({ youtube: "UCnew" }),
         })
       );
-      expect(onUpdate).toHaveBeenCalledWith(mockUser);
+      expect(onUpdate).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalled();
     });
   });

@@ -70,7 +70,7 @@ describe("ProfileInfoForm", () => {
 
     await waitFor(() => {
       expect(updateProfile).toHaveBeenCalledWith({ displayName: "NewName" });
-      expect(onUpdate).toHaveBeenCalledWith(updatedUser);
+      expect(onUpdate).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalled();
     });
   });

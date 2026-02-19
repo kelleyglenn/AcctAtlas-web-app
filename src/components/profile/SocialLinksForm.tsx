@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { updateProfile } from "@/lib/api/users";
-import type { SocialLinks, User } from "@/types/api";
+import type { SocialLinks } from "@/types/api";
 
 interface SocialLinksFormProps {
   readonly socialLinks: SocialLinks;
-  readonly onUpdate: (user: User) => void;
+  readonly onUpdate: () => void;
   readonly onSuccess: () => void;
   readonly onError: (msg: string) => void;
 }
@@ -28,8 +28,8 @@ export function SocialLinksForm({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updated = await updateProfile({ socialLinks: links });
-      onUpdate(updated);
+      await updateProfile({ socialLinks: links });
+      onUpdate();
       onSuccess();
     } catch {
       onError("Failed to update social links.");

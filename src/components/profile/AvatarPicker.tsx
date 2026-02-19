@@ -7,7 +7,7 @@ import type { User, AvatarSources } from "@/types/api";
 interface AvatarPickerProps {
   readonly user: User;
   readonly avatarSources?: AvatarSources;
-  readonly onUpdate: (user: User) => void;
+  readonly onUpdate: () => void;
   readonly onSuccess: () => void;
   readonly onError: (msg: string) => void;
 }
@@ -35,8 +35,8 @@ export function AvatarPicker({
   const handleSelect = async (url: string) => {
     setIsSaving(true);
     try {
-      const updated = await updateProfile({ avatarUrl: url });
-      onUpdate(updated);
+      await updateProfile({ avatarUrl: url });
+      onUpdate();
       onSuccess();
       closeDialog();
     } catch {

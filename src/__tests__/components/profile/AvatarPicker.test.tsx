@@ -165,7 +165,7 @@ describe("AvatarPicker", () => {
       expect(updateProfile).toHaveBeenCalledWith({
         avatarUrl: "https://gravatar.com/avatar/abc",
       });
-      expect(onUpdate).toHaveBeenCalledWith(updatedUser);
+      expect(onUpdate).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalled();
     });
   });
