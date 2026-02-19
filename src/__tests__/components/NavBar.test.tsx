@@ -107,12 +107,11 @@ describe("NavBar", () => {
       expect(logo.className).toContain("text-gray-900");
     });
 
-    it("uses white border/text for outline buttons on home page", () => {
+    it("uses white border/text for outline buttons on home page via inline styles", () => {
       mockPathname = "/";
       render(<NavBar />);
       const signIn = screen.getByText("Sign In");
-      expect(signIn.className).toContain("border-white");
-      expect(signIn.className).toContain("text-white");
+      expect(signIn).toHaveStyle({ borderColor: "white", color: "white" });
     });
 
     it("uses white text for authenticated links on home page", () => {

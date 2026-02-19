@@ -30,7 +30,7 @@ How It Works
 
 **8,000+ Videos Mapped**  
 **All 50 States Represented**  
-**1st, 2nd, 4th & 5th Amendments Indexed**
+**1st, 2nd, 4th, 5th, and 14th Amendments Indexed**
 
 ---
 

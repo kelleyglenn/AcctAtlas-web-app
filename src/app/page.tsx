@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useAuth } from "@/providers/AuthProvider";
 import { HeroMap } from "@/components/HeroMap";
 
+const primaryCta =
+  "inline-flex items-center justify-center px-6 py-3 rounded-md bg-white text-black font-medium shadow hover:scale-[1.03] transition-transform";
+const secondaryCta =
+  "inline-flex items-center justify-center px-6 py-3 rounded-md border border-white/70 text-white font-medium hover:bg-white/10 transition";
+
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
 
@@ -34,25 +39,16 @@ export default function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/map"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-white text-black font-medium shadow hover:scale-[1.03] transition-transform"
-                >
+                <Link href="/map" className={primaryCta}>
                   Explore the Map
                 </Link>
 
                 {isAuthenticated ? (
-                  <Link
-                    href="/videos/new"
-                    className="inline-flex items-center justify-center px-6 py-3 rounded-md border border-white/70 text-white font-medium hover:bg-white/10 transition"
-                  >
+                  <Link href="/videos/new" className={secondaryCta}>
                     Submit a Video
                   </Link>
                 ) : (
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center justify-center px-6 py-3 rounded-md border border-white/70 text-white font-medium hover:bg-white/10 transition"
-                  >
+                  <Link href="/register" className={secondaryCta}>
                     Create Free Account
                   </Link>
                 )}

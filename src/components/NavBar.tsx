@@ -30,9 +30,10 @@ export function NavBar() {
         <Link href="/map">
           <Button
             variant="outline"
-            className={`text-sm ${
-              isHome ? "border-white text-white hover:bg-white/10" : ""
-            }`}
+            className="text-sm"
+            style={
+              isHome ? { borderColor: "white", color: "white" } : undefined
+            }
           >
             Explore Map
           </Button>
@@ -69,9 +70,10 @@ export function NavBar() {
           <Link href="/login">
             <Button
               variant="outline"
-              className={`text-sm ${
-                isHome ? "border-white text-white hover:bg-white/10" : ""
-              }`}
+              className="text-sm"
+              style={
+                isHome ? { borderColor: "white", color: "white" } : undefined
+              }
             >
               Sign In
             </Button>
