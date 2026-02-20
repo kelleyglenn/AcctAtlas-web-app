@@ -28,6 +28,7 @@ export interface VideoLocation {
   recordedAt?: string;
   amendments: string[];
   participantCount?: number;
+  participants?: string[];
 }
 
 // Cluster from location service
@@ -153,3 +154,11 @@ export const PARTICIPANT_TYPE_OPTIONS = [
   { id: "CITIZEN", label: "Citizen" },
   { id: "SECURITY", label: "Security" },
 ];
+
+/**
+ * Format a participant type value for display (e.g., "POLICE" -> "Police")
+ */
+export function formatParticipant(participant: string): string {
+  const option = PARTICIPANT_TYPE_OPTIONS.find((o) => o.id === participant);
+  return option?.label || participant;
+}

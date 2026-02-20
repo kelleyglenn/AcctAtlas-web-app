@@ -82,6 +82,20 @@ describe("api/search", () => {
       expect(result.videos[0].participantCount).toBe(3);
     });
 
+    it("maps participants array from API response", async () => {
+      const apiResponse = makeApiResponse([
+        makeResult({ participants: ["POLICE", "GOVERNMENT"] }),
+      ]);
+
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: apiResponse });
+
+      const result = await searchVideos({ page: 0, pageSize: 20 });
+
+      expect(result.videos[0].participants).toEqual(["POLICE", "GOVERNMENT"]);
+      // participantCount should still be set for VideoListItem
+      expect(result.videos[0].participantCount).toBe(2);
+    });
+
     it("maps thumbnailUrl, durationSeconds, and videoDate from API response", async () => {
       const apiResponse = makeApiResponse([
         makeResult({

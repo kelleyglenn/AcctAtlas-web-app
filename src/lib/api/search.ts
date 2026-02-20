@@ -73,6 +73,7 @@ function transformSearchResponse(
         recordedAt: result.videoDate,
         amendments: result.amendments,
         participantCount: result.participants.length,
+        participants: result.participants,
       };
     });
 
