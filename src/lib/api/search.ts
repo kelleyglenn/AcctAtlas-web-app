@@ -25,6 +25,9 @@ interface ApiSearchResult {
   title: string;
   description?: string;
   channelName?: string;
+  thumbnailUrl?: string;
+  durationSeconds?: number;
+  videoDate?: string;
   amendments: string[];
   participants: string[];
   locations: Array<{
@@ -65,6 +68,9 @@ function transformSearchResponse(
         latitude: primaryLocation.coordinates.latitude,
         longitude: primaryLocation.coordinates.longitude,
         title: result.title,
+        thumbnailUrl: result.thumbnailUrl,
+        duration: result.durationSeconds,
+        recordedAt: result.videoDate,
         amendments: result.amendments,
         participantCount: result.participants.length,
       };
