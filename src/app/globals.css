@@ -13,3 +13,8 @@ body {
     Arial,
     sans-serif;
 }
+
+/* Hide default Mapbox popup close button in video info popups */
+.video-info-popup .mapboxgl-popup-close-button {
+  display: none;
+}

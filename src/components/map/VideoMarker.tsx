@@ -50,7 +50,10 @@ export function VideoMarker({ video, onClick }: VideoMarkerProps) {
         data-video-id={video.id}
         data-testid="video-marker"
         className="cursor-pointer transition-transform hover:scale-110"
-        onClick={handleClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClick();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             handleClick();
