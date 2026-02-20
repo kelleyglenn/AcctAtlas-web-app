@@ -81,6 +81,38 @@ describe("api/search", () => {
 
       expect(result.videos[0].participantCount).toBe(3);
     });
+
+    it("maps thumbnailUrl, durationSeconds, and videoDate from API response", async () => {
+      const apiResponse = makeApiResponse([
+        makeResult({
+          thumbnailUrl: "https://img.youtube.com/vi/abc123/mqdefault.jpg",
+          durationSeconds: 185,
+          videoDate: "2025-06-15",
+        }),
+      ]);
+
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: apiResponse });
+
+      const result = await searchVideos({ page: 0, pageSize: 20 });
+
+      expect(result.videos[0].thumbnailUrl).toBe(
+        "https://img.youtube.com/vi/abc123/mqdefault.jpg"
+      );
+      expect(result.videos[0].duration).toBe(185);
+      expect(result.videos[0].recordedAt).toBe("2025-06-15");
+    });
+
+    it("handles missing thumbnailUrl, durationSeconds, and videoDate gracefully", async () => {
+      const apiResponse = makeApiResponse([makeResult()]);
+
+      (apiClient.get as jest.Mock).mockResolvedValue({ data: apiResponse });
+
+      const result = await searchVideos({ page: 0, pageSize: 20 });
+
+      expect(result.videos[0].thumbnailUrl).toBeUndefined();
+      expect(result.videos[0].duration).toBeUndefined();
+      expect(result.videos[0].recordedAt).toBeUndefined();
+    });
   });
 
   describe("query parameter handling", () => {
