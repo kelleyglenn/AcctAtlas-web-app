@@ -152,5 +152,18 @@ describe("VideoMarker", () => {
 
       expect(handleClick).toHaveBeenCalledWith(validVideo);
     });
+
+    it("should stop click event propagation", () => {
+      renderWithProvider(<VideoMarker video={validVideo} />);
+
+      const marker = screen.getByRole("button");
+      const clickEvent = new MouseEvent("click", { bubbles: true });
+      Object.defineProperty(clickEvent, "stopPropagation", {
+        value: jest.fn(),
+      });
+      marker.dispatchEvent(clickEvent);
+
+      expect(clickEvent.stopPropagation).toHaveBeenCalled();
+    });
   });
 });
