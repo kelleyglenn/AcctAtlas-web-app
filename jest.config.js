@@ -49,10 +49,10 @@ const customJestConfig = {
       lines: 80,
     },
     "./src/components/map/": {
-      statements: 35,
-      branches: 40,
-      functions: 35,
-      lines: 35,
+      statements: 44,
+      branches: 47,
+      functions: 48,
+      lines: 46,
     },
   },
 };
