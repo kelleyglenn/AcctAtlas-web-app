@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
+import Link from "next/link";
 import { Popup } from "react-map-gl/mapbox";
 import { useMap } from "@/providers/MapProvider";
 import {
@@ -16,6 +18,40 @@ interface VideoInfoCardProps {
 export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
   const { setSelectedVideoId } = useMap();
 
+  const handleClose = useCallback(() => {
+    setSelectedVideoId(null);
+    onClose?.();
+  }, [setSelectedVideoId, onClose]);
+
+  const closeButton = useMemo(
+    () => (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleClose();
+        }}
+        className="absolute top-1 right-1 z-10 w-7 h-7 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors"
+        aria-label="Close popup"
+      >
+        <svg
+          className="w-4 h-4 text-gray-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    ),
+    [handleClose]
+  );
+
   // Safety check for valid coordinates
   if (
     typeof video.longitude !== "number" ||
@@ -25,11 +61,6 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
   ) {
     return null;
   }
-
-  const handleClose = () => {
-    setSelectedVideoId(null);
-    onClose?.();
-  };
 
   // Format duration as mm:ss
   const formatDuration = (seconds?: number) => {
@@ -49,32 +80,6 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
     });
   };
 
-  const closeButton = (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleClose();
-      }}
-      className="absolute top-1 right-1 z-10 w-7 h-7 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors"
-      aria-label="Close popup"
-    >
-      <svg
-        className="w-4 h-4 text-gray-700"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    </button>
-  );
-
   return (
     <Popup
       longitude={video.longitude}
@@ -88,7 +93,7 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
       <div className="p-1">
         {/* Thumbnail with custom close button overlay */}
         {video.thumbnailUrl ? (
-          <a
+          <Link
             href={`/videos/${video.videoId}`}
             className="relative mb-2 rounded overflow-hidden block"
           >
@@ -104,7 +109,7 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
                 {formatDuration(video.duration)}
               </span>
             )}
-          </a>
+          </Link>
         ) : (
           <div className="relative">{closeButton}</div>
         )}
@@ -144,12 +149,12 @@ export function VideoInfoCard({ video, onClose }: VideoInfoCardProps) {
         </div>
 
         {/* View button */}
-        <a
+        <Link
           href={`/videos/${video.videoId}`}
           className="mt-2 block w-full text-center bg-blue-600 text-white text-sm py-1.5 rounded hover:bg-blue-700 transition-colors"
         >
           View Video
-        </a>
+        </Link>
       </div>
     </Popup>
   );
