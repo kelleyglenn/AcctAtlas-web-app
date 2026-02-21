@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { YouTubePreview } from "@/components/video/YouTubePreview";
 import { LocationPicker } from "@/components/video/LocationPicker";
-import { previewVideo, createVideo } from "@/lib/api/videos";
-import { createLocation } from "@/lib/api/locations";
+import {
+  previewVideo,
+  createVideo,
+  extractVideoMetadata,
+} from "@/lib/api/videos";
+import { createLocation, geocodeAddress } from "@/lib/api/locations";
 import { useToasts, ToastContainer } from "@/components/ui/Toast";
 import { AMENDMENT_OPTIONS, PARTICIPANT_TYPE_OPTIONS } from "@/types/map";
 import type {
@@ -43,6 +47,13 @@ export function VideoSubmitForm() {
   const [amendmentError, setAmendmentError] = useState("");
   const [participantError, setParticipantError] = useState("");
   const [locationError, setLocationError] = useState("");
+
+  // AI extraction
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [suggestedLocation, setSuggestedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +103,66 @@ export function VideoSubmitForm() {
         ? prev.filter((p) => p !== participant)
         : [...prev, participant]
     );
+  };
+
+  const handleExtract = async () => {
+    if (!youtubeUrl.trim()) return;
+    setIsExtracting(true);
+    try {
+      const result = await extractVideoMetadata(youtubeUrl);
+      if (result.amendments?.length) {
+        setAmendments(result.amendments);
+        setAmendmentError("");
+      }
+      if (result.participants?.length) {
+        setParticipants(result.participants);
+        setParticipantError("");
+      }
+      if (result.videoDate) {
+        setVideoDate(result.videoDate);
+      }
+      if (result.location) {
+        if (
+          result.location.latitude != null &&
+          result.location.longitude != null
+        ) {
+          setSuggestedLocation({
+            latitude: result.location.latitude,
+            longitude: result.location.longitude,
+          });
+          setLocationError("");
+        } else {
+          const parts = [
+            result.location.name,
+            result.location.city,
+            result.location.state,
+          ]
+            .filter(Boolean)
+            .join(", ");
+          if (parts) {
+            try {
+              const geo = await geocodeAddress(parts);
+              setSuggestedLocation({
+                latitude: geo.latitude,
+                longitude: geo.longitude,
+              });
+              setLocationError("");
+            } catch {
+              // Geocoding failed, user can pick manually
+            }
+          }
+        }
+      }
+      success("AI suggestions applied. Review and adjust as needed.");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 503) {
+        showError("AI extraction unavailable. Please fill in manually.");
+      } else {
+        showError("AI extraction failed. Please fill in manually.");
+      }
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const validate = (): boolean => {
@@ -213,6 +284,19 @@ export function VideoSubmitForm() {
             <YouTubePreview preview={preview} />
           </div>
 
+          {/* Auto-fill with AI */}
+          <div className="mb-4 flex justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleExtract}
+              isLoading={isExtracting}
+              disabled={!preview}
+            >
+              Auto-fill with AI
+            </Button>
+          </div>
+
           {/* Form fields in two columns on desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Left column: metadata */}
@@ -277,6 +361,7 @@ export function VideoSubmitForm() {
                   setLocation(loc);
                 }}
                 error={locationError}
+                initialLocation={suggestedLocation ?? undefined}
               />
             </div>
           </div>

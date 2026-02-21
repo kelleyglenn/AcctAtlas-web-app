@@ -1,8 +1,16 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { VideoSubmitForm } from "@/components/video/VideoSubmitForm";
-import { previewVideo, createVideo } from "@/lib/api/videos";
-import { createLocation, reverseGeocode } from "@/lib/api/locations";
+import {
+  previewVideo,
+  createVideo,
+  extractVideoMetadata,
+} from "@/lib/api/videos";
+import {
+  createLocation,
+  reverseGeocode,
+  geocodeAddress,
+} from "@/lib/api/locations";
 import type { VideoPreview } from "@/types/api";
 
 // Mock next/navigation
@@ -15,11 +23,13 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/lib/api/videos", () => ({
   previewVideo: jest.fn(),
   createVideo: jest.fn(),
+  extractVideoMetadata: jest.fn(),
 }));
 
 jest.mock("@/lib/api/locations", () => ({
   createLocation: jest.fn(),
   reverseGeocode: jest.fn(),
+  geocodeAddress: jest.fn(),
 }));
 
 // Mock react-map-gl/mapbox
@@ -501,6 +511,167 @@ describe("VideoSubmitForm", () => {
       expect(
         screen.getByText("size must be between 1 and 2147483647")
       ).toBeInTheDocument();
+    });
+  });
+
+  it("shows Auto-fill button after successful preview", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+
+    render(<VideoSubmitForm />);
+
+    // Auto-fill button should not be visible before preview
+    expect(screen.queryByText("Auto-fill with AI")).not.toBeInTheDocument();
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+  });
+
+  it("populates fields after clicking Auto-fill with AI", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockResolvedValue({
+      amendments: ["FIRST", "FOURTH"],
+      participants: ["POLICE", "CITIZEN"],
+      videoDate: "2024-03-15",
+      location: {
+        name: "City Hall",
+        city: "Springfield",
+        state: "IL",
+        latitude: 39.7817,
+        longitude: -89.6501,
+      },
+      confidence: {
+        amendments: 0.9,
+        participants: 0.85,
+        videoDate: 0.6,
+        location: 0.8,
+      },
+    });
+
+    render(<VideoSubmitForm />);
+
+    // Preview first
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    // Click Auto-fill
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(extractVideoMetadata).toHaveBeenCalledWith(
+        "https://www.youtube.com/watch?v=abc123"
+      );
+    });
+
+    // Check amendments are selected
+    await waitFor(() => {
+      const firstChip = screen.getByText("1st Amendment").closest("span");
+      expect(firstChip).toHaveClass("bg-blue-600");
+    });
+
+    const fourthChip = screen.getByText("4th Amendment").closest("span");
+    expect(fourthChip).toHaveClass("bg-blue-600");
+
+    // Check participants are selected
+    const policeChip = screen.getByText("Police").closest("span");
+    expect(policeChip).toHaveClass("bg-blue-600");
+    const citizenChip = screen.getByText("Citizen").closest("span");
+    expect(citizenChip).toHaveClass("bg-blue-600");
+  });
+
+  it("shows error toast when AI extraction fails with 503", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 503 },
+    });
+
+    render(<VideoSubmitForm />);
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("AI extraction unavailable. Please fill in manually.")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("geocodes location when AI returns name but no coordinates", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockResolvedValue({
+      amendments: ["FIRST"],
+      participants: ["POLICE"],
+      videoDate: null,
+      location: {
+        name: "City Hall",
+        city: "Springfield",
+        state: "IL",
+        latitude: null,
+        longitude: null,
+      },
+      confidence: {
+        amendments: 0.9,
+        participants: 0.85,
+        videoDate: null,
+        location: 0.7,
+      },
+    });
+    (geocodeAddress as jest.Mock).mockResolvedValue({
+      displayName: "City Hall",
+      city: "Springfield",
+      state: "IL",
+      latitude: 39.7817,
+      longitude: -89.6501,
+    });
+
+    render(<VideoSubmitForm />);
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(geocodeAddress).toHaveBeenCalledWith("City Hall, Springfield, IL");
     });
   });
 

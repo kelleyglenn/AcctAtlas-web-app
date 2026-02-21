@@ -17,11 +17,13 @@ interface LocationPickerProps {
     } | null
   ) => void;
   error?: string;
+  initialLocation?: { latitude: number; longitude: number };
 }
 
 export function LocationPicker({
   onLocationChange,
   error,
+  initialLocation,
 }: LocationPickerProps) {
   const mapRef = useRef<MapRef>(null);
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
@@ -63,6 +65,29 @@ export function LocationPicker({
       setIsGeocoding(false);
     }
   }, []);
+
+  const prevInitialLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!initialLocation) return;
+    const prev = prevInitialLocationRef.current;
+    if (
+      prev &&
+      prev.latitude === initialLocation.latitude &&
+      prev.longitude === initialLocation.longitude
+    ) {
+      return;
+    }
+    prevInitialLocationRef.current = initialLocation;
+    placeMarker(initialLocation.latitude, initialLocation.longitude);
+    mapRef.current?.flyTo({
+      center: [initialLocation.longitude, initialLocation.latitude],
+      zoom: 14,
+    });
+  }, [initialLocation, placeMarker]);
 
   const handleSearchRetrieve = useCallback(
     (res: { features: { geometry: { coordinates: number[] } }[] }) => {

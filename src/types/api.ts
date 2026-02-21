@@ -176,6 +176,39 @@ export interface ReverseGeocodeResponse {
   country?: string;
 }
 
+export interface ExtractedLocation {
+  name?: string;
+  city?: string;
+  state?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ConfidenceScores {
+  amendments?: number;
+  participants?: number;
+  videoDate?: number;
+  location?: number;
+}
+
+export interface VideoMetadataExtraction {
+  amendments: string[];
+  participants: string[];
+  videoDate?: string;
+  location?: ExtractedLocation;
+  confidence?: ConfidenceScores;
+}
+
+export interface GeocodeResponse {
+  displayName: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface ModerationItem {
   id: string;
   contentType: "VIDEO" | "LOCATION";
