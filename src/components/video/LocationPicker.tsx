@@ -75,9 +75,8 @@ export function LocationPicker({
     if (!initialLocation) return;
     const prev = prevInitialLocationRef.current;
     if (
-      prev &&
-      prev.latitude === initialLocation.latitude &&
-      prev.longitude === initialLocation.longitude
+      prev?.latitude === initialLocation.latitude &&
+      prev?.longitude === initialLocation.longitude
     ) {
       return;
     }
