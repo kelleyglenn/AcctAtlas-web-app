@@ -200,19 +200,6 @@ export interface VideoMetadataExtraction {
   confidence?: ConfidenceScores;
 }
 
-export interface GeocodeResponse {
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  formattedAddress: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  placeId?: string;
-}
-
 export interface ModerationItem {
   id: string;
   contentType: "VIDEO" | "LOCATION";

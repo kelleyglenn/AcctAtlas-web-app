@@ -648,6 +648,7 @@ describe("VideoSubmitForm", () => {
           features: [{ center: [-89.6501, 39.7817] }],
         }),
     });
+    const originalFetch = global.fetch;
     global.fetch = mockFetch;
 
     render(<VideoSubmitForm />);
@@ -673,6 +674,8 @@ describe("VideoSubmitForm", () => {
         )
       );
     });
+
+    global.fetch = originalFetch;
   });
 
   it("shows generic error for non-validation server errors", async () => {

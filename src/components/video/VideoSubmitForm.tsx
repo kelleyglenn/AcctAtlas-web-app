@@ -24,6 +24,15 @@ import type {
 } from "@/types/api";
 import axios from "axios";
 
+const AI_VERBS = [
+  "Thinking",
+  "Analyzing",
+  "Processing",
+  "Synthesizing",
+  "Deliberating",
+  "Generating",
+];
+
 export function VideoSubmitForm() {
   const router = useRouter();
   const { toasts, dismissToast, success, error: showError } = useToasts();
@@ -52,14 +61,6 @@ export function VideoSubmitForm() {
   // AI extraction
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionDone, setExtractionDone] = useState(false);
-  const AI_VERBS = [
-    "Thinking",
-    "Analyzing",
-    "Processing",
-    "Synthesizing",
-    "Deliberating",
-    "Generating",
-  ];
   const [aiVerb, setAiVerb] = useState(AI_VERBS[0]);
   const aiVerbRef = useRef(aiVerb);
   aiVerbRef.current = aiVerb;
@@ -86,6 +87,7 @@ export function VideoSubmitForm() {
     setUrlError("");
     setIsLoadingPreview(true);
     setPreview(null);
+    setExtractionDone(false);
 
     try {
       const result = await previewVideo(youtubeUrl);

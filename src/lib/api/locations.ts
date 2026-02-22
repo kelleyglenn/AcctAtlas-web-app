@@ -9,7 +9,6 @@ import type {
   CreateLocationRequest,
   CreateLocationResponse,
   ReverseGeocodeResponse,
-  GeocodeResponse,
 } from "@/types/api";
 
 /**
@@ -89,18 +88,6 @@ export async function createLocation(
     "/locations",
     data
   );
-  return response.data;
-}
-
-/**
- * Geocode an address to get coordinates
- */
-export async function geocodeAddress(
-  address: string
-): Promise<GeocodeResponse> {
-  const response = await apiClient.get<GeocodeResponse>("/locations/geocode", {
-    params: { address },
-  });
   return response.data;
 }
 
