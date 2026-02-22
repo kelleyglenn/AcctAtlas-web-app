@@ -319,34 +319,36 @@ export function VideoSubmitForm() {
           </div>
 
           {/* Auto-fill with AI */}
-          <div className="mb-4 flex items-center justify-end gap-3">
-            {isExtracting && (
-              <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <span className="flex gap-0.5">
-                  <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
-                </span>
-                <span>{aiVerb} with AI</span>
-              </div>
-            )}
+          <div className="mb-4">
+            <div className="flex items-center justify-end gap-3">
+              {isExtracting && (
+                <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                  <span className="flex gap-0.5">
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </span>
+                  <span>{aiVerb} with AI</span>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleExtract}
+                isLoading={isExtracting}
+                disabled={!preview}
+              >
+                Auto-fill with AI
+              </Button>
+            </div>
 
             {extractionDone && !isExtracting && (
-              <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
+              <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
                 AI suggestions applied — please review all fields before
                 submitting.
               </div>
             )}
-
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleExtract}
-              isLoading={isExtracting}
-              disabled={!preview}
-            >
-              Auto-fill with AI
-            </Button>
           </div>
 
           {/* Form fields in two columns on desktop */}
