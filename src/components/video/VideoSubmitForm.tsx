@@ -128,6 +128,36 @@ export function VideoSubmitForm() {
     );
   };
 
+  const resolveExtractedLocation = async (
+    loc: NonNullable<
+      Awaited<ReturnType<typeof extractVideoMetadata>>["location"]
+    >
+  ) => {
+    if (loc.latitude != null && loc.longitude != null) {
+      setSuggestedLocation({
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      });
+      setLocationError("");
+      return;
+    }
+    const parts = [loc.name, loc.city, loc.state].filter(Boolean).join(", ");
+    if (!parts) return;
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(parts)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&types=poi,address,place&country=us&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.features?.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        setSuggestedLocation({ latitude: lat, longitude: lng });
+        setLocationError("");
+      }
+    } catch {
+      // Geocoding failed, user can pick manually
+    }
+  };
+
   const handleExtract = async () => {
     if (!youtubeUrl.trim()) return;
     setIsExtracting(true);
@@ -145,40 +175,7 @@ export function VideoSubmitForm() {
         setVideoDate(result.videoDate);
       }
       if (result.location) {
-        if (
-          result.location.latitude != null &&
-          result.location.longitude != null
-        ) {
-          setSuggestedLocation({
-            latitude: result.location.latitude,
-            longitude: result.location.longitude,
-          });
-          setLocationError("");
-        } else {
-          const parts = [
-            result.location.name,
-            result.location.city,
-            result.location.state,
-          ]
-            .filter(Boolean)
-            .join(", ");
-          if (parts) {
-            try {
-              const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(parts)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&types=poi,address,place&country=us&limit=1`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const data = await res.json();
-                if (data.features?.length > 0) {
-                  const [lng, lat] = data.features[0].center;
-                  setSuggestedLocation({ latitude: lat, longitude: lng });
-                  setLocationError("");
-                }
-              }
-            } catch {
-              // Geocoding failed, user can pick manually
-            }
-          }
-        }
+        await resolveExtractedLocation(result.location);
       }
       setExtractionDone(true);
       success("AI suggestions applied. Review and adjust as needed.");
