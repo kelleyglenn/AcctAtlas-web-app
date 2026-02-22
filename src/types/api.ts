@@ -169,11 +169,12 @@ export interface CreateLocationResponse {
 }
 
 export interface ReverseGeocodeResponse {
-  displayName: string;
+  formattedAddress: string;
   address?: string;
   city?: string;
   state?: string;
   country?: string;
+  placeId?: string;
 }
 
 export interface ExtractedLocation {
@@ -200,13 +201,16 @@ export interface VideoMetadataExtraction {
 }
 
 export interface GeocodeResponse {
-  displayName: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  formattedAddress: string;
   address?: string;
   city?: string;
   state?: string;
   country?: string;
-  latitude: number;
-  longitude: number;
+  placeId?: string;
 }
 
 export interface ModerationItem {

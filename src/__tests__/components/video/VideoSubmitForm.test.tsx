@@ -6,11 +6,7 @@ import {
   createVideo,
   extractVideoMetadata,
 } from "@/lib/api/videos";
-import {
-  createLocation,
-  reverseGeocode,
-  geocodeAddress,
-} from "@/lib/api/locations";
+import { createLocation, reverseGeocode } from "@/lib/api/locations";
 import type { VideoPreview } from "@/types/api";
 
 // Mock next/navigation
@@ -29,7 +25,6 @@ jest.mock("@/lib/api/videos", () => ({
 jest.mock("@/lib/api/locations", () => ({
   createLocation: jest.fn(),
   reverseGeocode: jest.fn(),
-  geocodeAddress: jest.fn(),
 }));
 
 // Mock react-map-gl/mapbox
@@ -382,7 +377,7 @@ describe("VideoSubmitForm", () => {
   it("submits video after selecting amendments, participants, and location", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "New York City Hall",
+      formattedAddress: "260 Broadway, New York, NY, US",
       address: "260 Broadway",
       city: "New York",
       state: "NY",
@@ -435,7 +430,7 @@ describe("VideoSubmitForm", () => {
       expect(createLocation).toHaveBeenCalledWith(
         expect.objectContaining({
           coordinates: { latitude: 40.7128, longitude: -74.006 },
-          displayName: "New York City Hall",
+          displayName: "260 Broadway, New York, NY, US",
         })
       );
     });
@@ -455,7 +450,7 @@ describe("VideoSubmitForm", () => {
   it("displays field-specific validation errors from 400 response", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "Test Location",
+      formattedAddress: "Test City, TS, US",
       city: "Test City",
       state: "TS",
       country: "US",
@@ -646,13 +641,14 @@ describe("VideoSubmitForm", () => {
         location: 0.7,
       },
     });
-    (geocodeAddress as jest.Mock).mockResolvedValue({
-      displayName: "City Hall",
-      city: "Springfield",
-      state: "IL",
-      latitude: 39.7817,
-      longitude: -89.6501,
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          features: [{ center: [-89.6501, 39.7817] }],
+        }),
     });
+    global.fetch = mockFetch;
 
     render(<VideoSubmitForm />);
 
@@ -671,14 +667,18 @@ describe("VideoSubmitForm", () => {
     fireEvent.click(screen.getByText("Auto-fill with AI"));
 
     await waitFor(() => {
-      expect(geocodeAddress).toHaveBeenCalledWith("City Hall, Springfield, IL");
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "mapbox.places/City%20Hall%2C%20Springfield%2C%20IL"
+        )
+      );
     });
   });
 
   it("shows generic error for non-validation server errors", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "Test Location",
+      formattedAddress: "Test City, TS, US",
       city: "Test City",
       state: "TS",
       country: "US",

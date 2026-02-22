@@ -58,7 +58,7 @@ export function LocationPicker({
         latitude: lat,
         longitude: lng,
         geocode: {
-          displayName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+          formattedAddress: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
         },
       });
     } finally {
@@ -174,7 +174,7 @@ export function LocationPicker({
         <p className="text-sm text-gray-700 mt-2">
           {[geocodeResult.address, geocodeResult.city, geocodeResult.state]
             .filter(Boolean)
-            .join(", ") || geocodeResult.displayName}
+            .join(", ") || geocodeResult.formattedAddress}
         </p>
       )}
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}

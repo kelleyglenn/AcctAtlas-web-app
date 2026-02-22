@@ -113,7 +113,7 @@ export async function reverseGeocode(
 ): Promise<ReverseGeocodeResponse> {
   const response = await apiClient.get<ReverseGeocodeResponse>(
     "/locations/reverse",
-    { params: { lat, lng } }
+    { params: { latitude: lat, longitude: lng } }
   );
   return response.data;
 }

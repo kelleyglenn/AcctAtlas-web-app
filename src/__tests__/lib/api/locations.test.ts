@@ -149,9 +149,9 @@ describe("api/locations", () => {
   });
 
   describe("reverseGeocode", () => {
-    it("calls apiClient.get with /locations/reverse and lat/lng params", async () => {
+    it("calls apiClient.get with /locations/reverse and latitude/longitude params", async () => {
       const geocodeData = {
-        displayName: "New York City Hall",
+        formattedAddress: "260 Broadway, New York, NY, US",
         address: "260 Broadway",
         city: "New York",
         state: "NY",
@@ -163,7 +163,7 @@ describe("api/locations", () => {
       const result = await reverseGeocode(40.7128, -74.006);
 
       expect(apiClient.get).toHaveBeenCalledWith("/locations/reverse", {
-        params: { lat: 40.7128, lng: -74.006 },
+        params: { latitude: 40.7128, longitude: -74.006 },
       });
       expect(result).toEqual(geocodeData);
     });

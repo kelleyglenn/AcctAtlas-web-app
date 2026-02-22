@@ -13,8 +13,9 @@ import {
   createVideo,
   extractVideoMetadata,
 } from "@/lib/api/videos";
-import { createLocation, geocodeAddress } from "@/lib/api/locations";
+import { createLocation } from "@/lib/api/locations";
 import { useToasts, ToastContainer } from "@/components/ui/Toast";
+import { MAPBOX_ACCESS_TOKEN } from "@/config/mapbox";
 import { AMENDMENT_OPTIONS, PARTICIPANT_TYPE_OPTIONS } from "@/types/map";
 import type {
   VideoPreview,
@@ -141,12 +142,16 @@ export function VideoSubmitForm() {
             .join(", ");
           if (parts) {
             try {
-              const geo = await geocodeAddress(parts);
-              setSuggestedLocation({
-                latitude: geo.latitude,
-                longitude: geo.longitude,
-              });
-              setLocationError("");
+              const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(parts)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&types=poi,address,place&country=us&limit=1`;
+              const res = await fetch(url);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.features?.length > 0) {
+                  const [lng, lat] = data.features[0].center;
+                  setSuggestedLocation({ latitude: lat, longitude: lng });
+                  setLocationError("");
+                }
+              }
             } catch {
               // Geocoding failed, user can pick manually
             }
@@ -194,7 +199,7 @@ export function VideoSubmitForm() {
           latitude: location!.latitude,
           longitude: location!.longitude,
         },
-        displayName: location!.geocode.displayName,
+        displayName: location!.geocode.formattedAddress,
         address: location!.geocode.address,
         city: location!.geocode.city,
         state: location!.geocode.state,
