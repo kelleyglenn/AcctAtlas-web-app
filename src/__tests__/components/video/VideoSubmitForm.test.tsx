@@ -1,7 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { VideoSubmitForm } from "@/components/video/VideoSubmitForm";
-import { previewVideo, createVideo } from "@/lib/api/videos";
+import {
+  previewVideo,
+  createVideo,
+  extractVideoMetadata,
+} from "@/lib/api/videos";
 import { createLocation, reverseGeocode } from "@/lib/api/locations";
 import type { VideoPreview } from "@/types/api";
 
@@ -15,6 +19,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/lib/api/videos", () => ({
   previewVideo: jest.fn(),
   createVideo: jest.fn(),
+  extractVideoMetadata: jest.fn(),
 }));
 
 jest.mock("@/lib/api/locations", () => ({
@@ -372,7 +377,7 @@ describe("VideoSubmitForm", () => {
   it("submits video after selecting amendments, participants, and location", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "New York City Hall",
+      formattedAddress: "260 Broadway, New York, NY, US",
       address: "260 Broadway",
       city: "New York",
       state: "NY",
@@ -425,7 +430,7 @@ describe("VideoSubmitForm", () => {
       expect(createLocation).toHaveBeenCalledWith(
         expect.objectContaining({
           coordinates: { latitude: 40.7128, longitude: -74.006 },
-          displayName: "New York City Hall",
+          displayName: "260 Broadway, New York, NY, US",
         })
       );
     });
@@ -445,7 +450,7 @@ describe("VideoSubmitForm", () => {
   it("displays field-specific validation errors from 400 response", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "Test Location",
+      formattedAddress: "Test City, TS, US",
       city: "Test City",
       state: "TS",
       country: "US",
@@ -504,10 +509,179 @@ describe("VideoSubmitForm", () => {
     });
   });
 
+  it("shows Auto-fill button after successful preview", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+
+    render(<VideoSubmitForm />);
+
+    // Auto-fill button should not be visible before preview
+    expect(screen.queryByText("Auto-fill with AI")).not.toBeInTheDocument();
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+  });
+
+  it("populates fields after clicking Auto-fill with AI", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockResolvedValue({
+      amendments: ["FIRST", "FOURTH"],
+      participants: ["POLICE", "CITIZEN"],
+      videoDate: "2024-03-15",
+      location: {
+        name: "City Hall",
+        city: "Springfield",
+        state: "IL",
+        latitude: 39.7817,
+        longitude: -89.6501,
+      },
+      confidence: {
+        amendments: 0.9,
+        participants: 0.85,
+        videoDate: 0.6,
+        location: 0.8,
+      },
+    });
+
+    render(<VideoSubmitForm />);
+
+    // Preview first
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    // Click Auto-fill
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(extractVideoMetadata).toHaveBeenCalledWith(
+        "https://www.youtube.com/watch?v=abc123"
+      );
+    });
+
+    // Check amendments are selected
+    await waitFor(() => {
+      const firstChip = screen.getByText("1st Amendment").closest("span");
+      expect(firstChip).toHaveClass("bg-blue-600");
+    });
+
+    const fourthChip = screen.getByText("4th Amendment").closest("span");
+    expect(fourthChip).toHaveClass("bg-blue-600");
+
+    // Check participants are selected
+    const policeChip = screen.getByText("Police").closest("span");
+    expect(policeChip).toHaveClass("bg-blue-600");
+    const citizenChip = screen.getByText("Citizen").closest("span");
+    expect(citizenChip).toHaveClass("bg-blue-600");
+  });
+
+  it("shows error toast when AI extraction fails with 503", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 503 },
+    });
+
+    render(<VideoSubmitForm />);
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("AI extraction unavailable. Please fill in manually.")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("geocodes location when AI returns name but no coordinates", async () => {
+    (previewVideo as jest.Mock).mockResolvedValue(basePreview);
+    (extractVideoMetadata as jest.Mock).mockResolvedValue({
+      amendments: ["FIRST"],
+      participants: ["POLICE"],
+      videoDate: null,
+      location: {
+        name: "City Hall",
+        city: "Springfield",
+        state: "IL",
+        latitude: null,
+        longitude: null,
+      },
+      confidence: {
+        amendments: 0.9,
+        participants: 0.85,
+        videoDate: null,
+        location: 0.7,
+      },
+    });
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          features: [{ center: [-89.6501, 39.7817] }],
+        }),
+    });
+    const originalFetch = global.fetch;
+    global.fetch = mockFetch;
+
+    render(<VideoSubmitForm />);
+
+    const urlInput = screen.getByPlaceholderText(
+      "https://www.youtube.com/watch?v=..."
+    );
+    fireEvent.change(urlInput, {
+      target: { value: "https://www.youtube.com/watch?v=abc123" },
+    });
+    fireEvent.click(screen.getByText("Preview"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Auto-fill with AI")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Auto-fill with AI"));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "mapbox.places/City%20Hall%2C%20Springfield%2C%20IL"
+        )
+      );
+    });
+
+    global.fetch = originalFetch;
+  });
+
   it("shows generic error for non-validation server errors", async () => {
     (previewVideo as jest.Mock).mockResolvedValue(basePreview);
     (reverseGeocode as jest.Mock).mockResolvedValue({
-      displayName: "Test Location",
+      formattedAddress: "Test City, TS, US",
       city: "Test City",
       state: "TS",
       country: "US",

@@ -17,11 +17,13 @@ interface LocationPickerProps {
     } | null
   ) => void;
   error?: string;
+  initialLocation?: { latitude: number; longitude: number };
 }
 
 export function LocationPicker({
   onLocationChange,
   error,
+  initialLocation,
 }: LocationPickerProps) {
   const mapRef = useRef<MapRef>(null);
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
@@ -56,13 +58,35 @@ export function LocationPicker({
         latitude: lat,
         longitude: lng,
         geocode: {
-          displayName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+          formattedAddress: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
         },
       });
     } finally {
       setIsGeocoding(false);
     }
   }, []);
+
+  const prevInitialLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!initialLocation) return;
+    const prev = prevInitialLocationRef.current;
+    if (
+      prev?.latitude === initialLocation.latitude &&
+      prev?.longitude === initialLocation.longitude
+    ) {
+      return;
+    }
+    prevInitialLocationRef.current = initialLocation;
+    placeMarker(initialLocation.latitude, initialLocation.longitude);
+    mapRef.current?.flyTo({
+      center: [initialLocation.longitude, initialLocation.latitude],
+      zoom: 14,
+    });
+  }, [initialLocation, placeMarker]);
 
   const handleSearchRetrieve = useCallback(
     (res: { features: { geometry: { coordinates: number[] } }[] }) => {
@@ -149,7 +173,7 @@ export function LocationPicker({
         <p className="text-sm text-gray-700 mt-2">
           {[geocodeResult.address, geocodeResult.city, geocodeResult.state]
             .filter(Boolean)
-            .join(", ") || geocodeResult.displayName}
+            .join(", ") || geocodeResult.formattedAddress}
         </p>
       )}
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}

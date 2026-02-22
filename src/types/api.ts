@@ -169,11 +169,35 @@ export interface CreateLocationResponse {
 }
 
 export interface ReverseGeocodeResponse {
-  displayName: string;
+  formattedAddress: string;
   address?: string;
   city?: string;
   state?: string;
   country?: string;
+  placeId?: string;
+}
+
+export interface ExtractedLocation {
+  name?: string;
+  city?: string;
+  state?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ConfidenceScores {
+  amendments?: number;
+  participants?: number;
+  videoDate?: number;
+  location?: number;
+}
+
+export interface VideoMetadataExtraction {
+  amendments: string[];
+  participants: string[];
+  videoDate?: string;
+  location?: ExtractedLocation;
+  confidence?: ConfidenceScores;
 }
 
 export interface ModerationItem {

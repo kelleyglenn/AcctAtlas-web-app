@@ -3,6 +3,7 @@ import type {
   VideoPreview,
   VideoDetailResponse,
   CreateVideoRequest,
+  VideoMetadataExtraction,
 } from "@/types/api";
 
 /**
@@ -30,6 +31,19 @@ export async function createVideo(
   data: CreateVideoRequest
 ): Promise<VideoDetailResponse> {
   const response = await apiClient.post<VideoDetailResponse>("/videos", data);
+  return response.data;
+}
+
+/**
+ * Extract video metadata using AI
+ */
+export async function extractVideoMetadata(
+  youtubeUrl: string
+): Promise<VideoMetadataExtraction> {
+  const response = await apiClient.get<VideoMetadataExtraction>(
+    "/videos/extract",
+    { params: { youtubeUrl } }
+  );
   return response.data;
 }
 

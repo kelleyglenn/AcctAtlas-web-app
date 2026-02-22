@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { YouTubePreview } from "@/components/video/YouTubePreview";
 import { LocationPicker } from "@/components/video/LocationPicker";
-import { previewVideo, createVideo } from "@/lib/api/videos";
+import {
+  previewVideo,
+  createVideo,
+  extractVideoMetadata,
+} from "@/lib/api/videos";
 import { createLocation } from "@/lib/api/locations";
 import { useToasts, ToastContainer } from "@/components/ui/Toast";
+import { MAPBOX_ACCESS_TOKEN } from "@/config/mapbox";
 import { AMENDMENT_OPTIONS, PARTICIPANT_TYPE_OPTIONS } from "@/types/map";
 import type {
   VideoPreview,
@@ -18,6 +23,15 @@ import type {
   ApiErrorDetail,
 } from "@/types/api";
 import axios from "axios";
+
+const AI_VERBS = [
+  "Thinking",
+  "Analyzing",
+  "Processing",
+  "Synthesizing",
+  "Deliberating",
+  "Generating",
+];
 
 export function VideoSubmitForm() {
   const router = useRouter();
@@ -44,6 +58,27 @@ export function VideoSubmitForm() {
   const [participantError, setParticipantError] = useState("");
   const [locationError, setLocationError] = useState("");
 
+  // AI extraction
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionDone, setExtractionDone] = useState(false);
+  const [aiVerb, setAiVerb] = useState(AI_VERBS[0]);
+  const aiVerbRef = useRef(aiVerb);
+  aiVerbRef.current = aiVerb;
+
+  useEffect(() => {
+    if (!isExtracting) return;
+    const id = setInterval(() => {
+      const remaining = AI_VERBS.filter((v) => v !== aiVerbRef.current);
+      setAiVerb(remaining[Math.floor(Math.random() * remaining.length)]);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [isExtracting]);
+
+  const [suggestedLocation, setSuggestedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,6 +87,7 @@ export function VideoSubmitForm() {
     setUrlError("");
     setIsLoadingPreview(true);
     setPreview(null);
+    setExtractionDone(false);
 
     try {
       const result = await previewVideo(youtubeUrl);
@@ -94,6 +130,68 @@ export function VideoSubmitForm() {
     );
   };
 
+  const resolveExtractedLocation = async (
+    loc: NonNullable<
+      Awaited<ReturnType<typeof extractVideoMetadata>>["location"]
+    >
+  ) => {
+    if (loc.latitude != null && loc.longitude != null) {
+      setSuggestedLocation({
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      });
+      setLocationError("");
+      return;
+    }
+    const parts = [loc.name, loc.city, loc.state].filter(Boolean).join(", ");
+    if (!parts) return;
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(parts)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&types=poi,address,place&country=us&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.features?.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        setSuggestedLocation({ latitude: lat, longitude: lng });
+        setLocationError("");
+      }
+    } catch {
+      // Geocoding failed, user can pick manually
+    }
+  };
+
+  const handleExtract = async () => {
+    if (!youtubeUrl.trim()) return;
+    setIsExtracting(true);
+    try {
+      const result = await extractVideoMetadata(youtubeUrl);
+      if (result.amendments?.length) {
+        setAmendments(result.amendments);
+        setAmendmentError("");
+      }
+      if (result.participants?.length) {
+        setParticipants(result.participants);
+        setParticipantError("");
+      }
+      if (result.videoDate) {
+        setVideoDate(result.videoDate);
+      }
+      if (result.location) {
+        await resolveExtractedLocation(result.location);
+      }
+      setExtractionDone(true);
+      success("AI suggestions applied. Review and adjust as needed.");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 503) {
+        showError("AI extraction unavailable. Please fill in manually.");
+      } else {
+        showError("AI extraction failed. Please fill in manually.");
+      }
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   const validate = (): boolean => {
     let valid = true;
     if (amendments.length === 0) {
@@ -123,7 +221,7 @@ export function VideoSubmitForm() {
           latitude: location!.latitude,
           longitude: location!.longitude,
         },
-        displayName: location!.geocode.displayName,
+        displayName: location!.geocode.formattedAddress,
         address: location!.geocode.address,
         city: location!.geocode.city,
         state: location!.geocode.state,
@@ -188,6 +286,12 @@ export function VideoSubmitForm() {
                 setYoutubeUrl(e.target.value);
                 setUrlError("");
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handlePreview();
+                }
+              }}
               placeholder="https://www.youtube.com/watch?v=..."
               error={urlError}
               required
@@ -211,6 +315,39 @@ export function VideoSubmitForm() {
         <>
           <div className="mb-6">
             <YouTubePreview preview={preview} />
+          </div>
+
+          {/* Auto-fill with AI */}
+          <div className="mb-4">
+            <div className="flex items-center justify-end gap-3">
+              {isExtracting && (
+                <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                  <span className="flex gap-0.5">
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="inline-block w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </span>
+                  <span>{aiVerb} with AI</span>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleExtract}
+                isLoading={isExtracting}
+                disabled={!preview}
+              >
+                Auto-fill with AI
+              </Button>
+            </div>
+
+            {extractionDone && !isExtracting && (
+              <div className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
+                AI suggestions applied — please review all fields before
+                submitting.
+              </div>
+            )}
           </div>
 
           {/* Form fields in two columns on desktop */}
@@ -277,6 +414,7 @@ export function VideoSubmitForm() {
                   setLocation(loc);
                 }}
                 error={locationError}
+                initialLocation={suggestedLocation ?? undefined}
               />
             </div>
           </div>
