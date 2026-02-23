@@ -4,6 +4,7 @@ import type {
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
+  RefreshResponse,
 } from "@/types/api";
 
 export async function register(
@@ -23,4 +24,13 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
 
 export async function logout(): Promise<void> {
   await apiClient.post("/auth/logout");
+}
+
+export async function refreshTokens(
+  refreshToken: string
+): Promise<RefreshResponse> {
+  const response = await apiClient.post<RefreshResponse>("/auth/refresh", {
+    refreshToken,
+  });
+  return response.data;
 }

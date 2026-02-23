@@ -4,7 +4,7 @@ jest.mock("@/lib/api/client", () => ({
   },
 }));
 
-import { login, register } from "@/lib/api/auth";
+import { login, register, refreshTokens } from "@/lib/api/auth";
 import { apiClient } from "@/lib/api/client";
 
 describe("api/auth", () => {
@@ -43,6 +43,28 @@ describe("api/auth", () => {
         "/auth/register",
         registerData
       );
+      expect(result).toEqual(responseData);
+    });
+  });
+
+  describe("refreshTokens", () => {
+    it("calls apiClient.post with /auth/refresh and returns response.data", async () => {
+      const responseData = {
+        tokens: {
+          accessToken: "new-access",
+          refreshToken: "new-refresh",
+          expiresIn: 900,
+          tokenType: "Bearer",
+        },
+      };
+
+      (apiClient.post as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await refreshTokens("old-refresh-token");
+
+      expect(apiClient.post).toHaveBeenCalledWith("/auth/refresh", {
+        refreshToken: "old-refresh-token",
+      });
       expect(result).toEqual(responseData);
     });
   });
