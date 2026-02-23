@@ -1,4 +1,10 @@
-import { apiClient, setAccessToken, getAccessToken } from "@/lib/api/client";
+import {
+  apiClient,
+  setAccessToken,
+  getAccessToken,
+  setOnRefreshTokens,
+  setOnClearAuth,
+} from "@/lib/api/client";
 
 describe("api/client", () => {
   beforeEach(() => {
@@ -55,6 +61,28 @@ describe("api/client", () => {
   describe("apiClient defaults", () => {
     it("has the correct baseURL", () => {
       expect(apiClient.defaults.baseURL).toBe("http://localhost:8080/api/v1");
+    });
+  });
+
+  describe("callback registration", () => {
+    it("exports setOnRefreshTokens as a function", () => {
+      expect(typeof setOnRefreshTokens).toBe("function");
+    });
+
+    it("exports setOnClearAuth as a function", () => {
+      expect(typeof setOnClearAuth).toBe("function");
+    });
+
+    it("accepts a callback for setOnRefreshTokens", () => {
+      const fn = jest.fn().mockResolvedValue(undefined);
+      expect(() => setOnRefreshTokens(fn)).not.toThrow();
+      setOnRefreshTokens(null);
+    });
+
+    it("accepts a callback for setOnClearAuth", () => {
+      const fn = jest.fn();
+      expect(() => setOnClearAuth(fn)).not.toThrow();
+      setOnClearAuth(null);
     });
   });
 });
