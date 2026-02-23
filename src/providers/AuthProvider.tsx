@@ -44,6 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isRefreshingRef = useRef(false);
   const scheduleRefreshRef = useRef<(expiresInSeconds: number) => void>(
     () => {}
   );
@@ -62,11 +63,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sessionStorage.removeItem("accessToken");
     sessionStorage.removeItem("refreshToken");
     sessionStorage.removeItem("tokenExpiresAt");
+    sessionStorage.removeItem("tokenLifetimeMs");
   }, [clearRefreshTimer]);
 
   const performRefresh = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+
     const refreshToken = sessionStorage.getItem("refreshToken");
     if (!refreshToken) {
+      isRefreshingRef.current = false;
       clearAuth();
       return;
     }
@@ -78,21 +84,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       sessionStorage.setItem("refreshToken", response.tokens.refreshToken);
       const expiresAt = Date.now() + response.tokens.expiresIn * 1000;
       sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
+      sessionStorage.setItem(
+        "tokenLifetimeMs",
+        (response.tokens.expiresIn * 1000).toString()
+      );
       scheduleRefreshRef.current(response.tokens.expiresIn);
     } catch {
       clearAuth();
+    } finally {
+      isRefreshingRef.current = false;
     }
   }, [clearAuth]);
 
-  const scheduleRefresh = useCallback(
-    (expiresInSeconds: number) => {
+  const scheduleRefreshAfterDelay = useCallback(
+    (delaySeconds: number) => {
       clearRefreshTimer();
-      const delayMs = expiresInSeconds * 1000 * REFRESH_THRESHOLD;
+      const delayMs = delaySeconds * 1000;
       refreshTimerRef.current = setTimeout(() => {
         performRefresh();
       }, delayMs);
     },
     [clearRefreshTimer, performRefresh]
+  );
+
+  const scheduleRefresh = useCallback(
+    (totalLifetimeSeconds: number) => {
+      const delaySeconds = totalLifetimeSeconds * REFRESH_THRESHOLD;
+      scheduleRefreshAfterDelay(delaySeconds);
+    },
+    [scheduleRefreshAfterDelay]
   );
 
   // Keep the ref in sync so performRefresh can call scheduleRefresh without circular deps
@@ -105,6 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       sessionStorage.setItem("refreshToken", refreshToken);
       const expiresAt = Date.now() + expiresIn * 1000;
       sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
+      sessionStorage.setItem("tokenLifetimeMs", (expiresIn * 1000).toString());
       scheduleRefresh(expiresIn);
     },
     [scheduleRefresh]
@@ -144,12 +165,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (remainingMs <= 0) {
           performRefresh();
         } else {
-          const totalLifetimeMs = 900 * 1000;
-          const remainingFraction = remainingMs / totalLifetimeMs;
-          if (remainingFraction <= 1 - REFRESH_THRESHOLD) {
+          const tokenLifetimeMs = parseInt(
+            sessionStorage.getItem("tokenLifetimeMs") || "900000",
+            10
+          );
+          const refreshAtMs = tokenLifetimeMs * REFRESH_THRESHOLD;
+          const elapsedMs = tokenLifetimeMs - remainingMs;
+          const delayMs = refreshAtMs - elapsedMs;
+          if (delayMs <= 0) {
             performRefresh();
           } else {
-            scheduleRefresh(remainingMs / 1000);
+            scheduleRefreshAfterDelay(delayMs / 1000);
           }
         }
       }
@@ -161,7 +187,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } else {
       setIsLoading(false);
     }
-  }, [fetchCurrentUser, performRefresh, scheduleRefresh]);
+  }, [fetchCurrentUser, performRefresh, scheduleRefreshAfterDelay]);
 
   const login = useCallback(
     async (email: string, password: string) => {

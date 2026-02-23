@@ -428,6 +428,7 @@ describe("AuthProvider", () => {
     it("should restore session with both tokens and schedule refresh", async () => {
       sessionStorage.setItem("accessToken", "stored-access");
       sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenLifetimeMs", "900000");
       sessionStorage.setItem(
         "tokenExpiresAt",
         (Date.now() + 600000).toString()
@@ -469,11 +470,13 @@ describe("AuthProvider", () => {
     });
 
     it("should refresh when token remaining fraction is below threshold", async () => {
-      // Set tokenExpiresAt so that remainingMs/totalLifetimeMs <= 0.2 (1 - REFRESH_THRESHOLD of 0.8)
-      // totalLifetimeMs = 900 * 1000 = 900000
-      // If remaining is 100000ms, fraction = 100000/900000 = 0.111 which is <= 0.2
+      // tokenLifetimeMs = 900000, remainingMs = 100000
+      // refreshAtMs = 900000 * 0.8 = 720000
+      // elapsedMs = 900000 - 100000 = 800000
+      // delayMs = 720000 - 800000 = -80000 (past 80% mark, refresh immediately)
       sessionStorage.setItem("accessToken", "stored-access");
       sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenLifetimeMs", "900000");
       sessionStorage.setItem(
         "tokenExpiresAt",
         (Date.now() + 100000).toString()
@@ -498,10 +501,13 @@ describe("AuthProvider", () => {
     });
 
     it("should schedule refresh when token has enough remaining time", async () => {
-      // Set tokenExpiresAt so that remainingMs/totalLifetimeMs > 0.2
-      // totalLifetimeMs = 900000, if remaining = 800000ms, fraction = 0.888 > 0.2
+      // tokenLifetimeMs = 900000, remainingMs = 800000
+      // refreshAtMs = 900000 * 0.8 = 720000
+      // elapsedMs = 900000 - 800000 = 100000
+      // delayMs = 720000 - 100000 = 620000 (> 0, schedule timer)
       sessionStorage.setItem("accessToken", "stored-access");
       sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenLifetimeMs", "900000");
       sessionStorage.setItem(
         "tokenExpiresAt",
         (Date.now() + 800000).toString()
@@ -518,6 +524,89 @@ describe("AuthProvider", () => {
       expect(mockRefreshTokens).not.toHaveBeenCalled();
       expect(result.current.user).toEqual(mockUser);
       expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it("should use stored tokenLifetimeMs for correct scheduling on restore", async () => {
+      // Token lifetime is 1800s (30 min), remaining is 1200s (20 min)
+      // tokenLifetimeMs = 1800000
+      // refreshAtMs = 1800000 * 0.8 = 1440000 (refresh at 24 min mark)
+      // elapsedMs = 1800000 - 1200000 = 600000 (10 min elapsed)
+      // delayMs = 1440000 - 600000 = 840000 (14 min until refresh)
+      // This should schedule, NOT immediately refresh
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenLifetimeMs", "1800000");
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 1200000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should NOT have called refresh immediately — still within the 80% window
+      expect(mockRefreshTokens).not.toHaveBeenCalled();
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it("should refresh immediately on restore when past 80% of stored lifetime", async () => {
+      // Token lifetime is 1800s (30 min), remaining is 200s (~3.3 min)
+      // tokenLifetimeMs = 1800000
+      // refreshAtMs = 1800000 * 0.8 = 1440000 (refresh at 24 min mark)
+      // elapsedMs = 1800000 - 200000 = 1600000 (~26.7 min elapsed)
+      // delayMs = 1440000 - 1600000 = -160000 (past 80% mark, refresh immediately)
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenLifetimeMs", "1800000");
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 200000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+      mockRefreshTokens.mockResolvedValueOnce({
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 1800,
+          tokenType: "Bearer",
+        },
+      });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockRefreshTokens).toHaveBeenCalledWith("stored-refresh");
+    });
+
+    it("should default tokenLifetimeMs to 900000 when not stored", async () => {
+      // No tokenLifetimeMs in sessionStorage, defaults to 900000
+      // remainingMs = 800000, tokenLifetimeMs = 900000
+      // refreshAtMs = 720000, elapsedMs = 100000, delayMs = 620000 (schedule)
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      // Intentionally NOT setting tokenLifetimeMs
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 800000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockRefreshTokens).not.toHaveBeenCalled();
+      expect(result.current.user).toEqual(mockUser);
     });
 
     it("should restore session with both tokens but no expiresAt", async () => {
@@ -553,6 +642,139 @@ describe("AuthProvider", () => {
       expect(mockSetAccessToken).toHaveBeenCalledWith("stored-access");
       expect(result.current.user).toEqual(mockUser);
       expect(result.current.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe("concurrent refresh guard", () => {
+    it("should prevent concurrent refresh calls", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+
+      // Make refreshTokens take some time to resolve
+      let resolveRefresh: (value: unknown) => void;
+      const refreshPromise = new Promise((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshTokens.mockReturnValueOnce(refreshPromise as never);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      // Get the performRefresh callback
+      const registeredRefreshFn = mockSetOnRefreshTokens.mock.calls[0][0];
+
+      // Call refresh twice concurrently
+      let firstDone = false;
+      let secondDone = false;
+      act(() => {
+        registeredRefreshFn().then(() => {
+          firstDone = true;
+        });
+        registeredRefreshFn().then(() => {
+          secondDone = true;
+        });
+      });
+
+      // Resolve the refresh
+      await act(async () => {
+        resolveRefresh!({
+          tokens: {
+            accessToken: "refreshed-access",
+            refreshToken: "refreshed-refresh",
+            expiresIn: 900,
+            tokenType: "Bearer",
+          },
+        });
+      });
+
+      // Wait for both promises to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // refreshTokens should only have been called ONCE despite two concurrent calls
+      expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+      expect(firstDone).toBe(true);
+      expect(secondDone).toBe(true);
+    });
+  });
+
+  describe("tokenLifetimeMs storage", () => {
+    it("should store tokenLifetimeMs on login", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      // expiresIn is 3600, so tokenLifetimeMs should be 3600000
+      expect(sessionStorage.getItem("tokenLifetimeMs")).toBe("3600000");
+    });
+
+    it("should store tokenLifetimeMs on refresh", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      const refreshResponse = {
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 1800,
+          tokenType: "Bearer",
+        },
+      };
+      mockRefreshTokens.mockResolvedValueOnce(refreshResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      const registeredRefreshFn = mockSetOnRefreshTokens.mock.calls[0][0];
+      await act(async () => {
+        await registeredRefreshFn();
+      });
+
+      // expiresIn from refresh is 1800, so tokenLifetimeMs should be 1800000
+      expect(sessionStorage.getItem("tokenLifetimeMs")).toBe("1800000");
+    });
+
+    it("should clear tokenLifetimeMs on logout", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      mockLogout.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      expect(sessionStorage.getItem("tokenLifetimeMs")).toBe("3600000");
+
+      act(() => {
+        result.current.logout();
+      });
+
+      expect(sessionStorage.getItem("tokenLifetimeMs")).toBeNull();
     });
   });
 

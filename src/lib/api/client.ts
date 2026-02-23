@@ -47,7 +47,7 @@ let failedQueue: Array<{
   reject: (reason?: unknown) => void;
 }> = [];
 
-function processQueue(error: unknown | null) {
+function processQueue(error: unknown) {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
