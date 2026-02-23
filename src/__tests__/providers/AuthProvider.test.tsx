@@ -336,6 +336,326 @@ describe("AuthProvider", () => {
     });
   });
 
+  describe("performRefresh via registered callback", () => {
+    it("should refresh tokens when onRefreshTokens callback is called", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      const refreshResponse = {
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 900,
+          tokenType: "Bearer",
+        },
+      };
+      mockRefreshTokens.mockResolvedValueOnce(refreshResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Login first to populate sessionStorage with a refresh token
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      expect(sessionStorage.getItem("refreshToken")).toBe("test-refresh-token");
+
+      // Get the performRefresh callback registered via setOnRefreshTokens
+      const registeredRefreshFn = mockSetOnRefreshTokens.mock.calls[0][0];
+
+      // Call it (simulating the interceptor triggering a refresh)
+      await act(async () => {
+        await registeredRefreshFn();
+      });
+
+      expect(mockRefreshTokens).toHaveBeenCalledWith("test-refresh-token");
+      expect(mockSetAccessToken).toHaveBeenCalledWith("refreshed-access");
+      expect(sessionStorage.getItem("accessToken")).toBe("refreshed-access");
+      expect(sessionStorage.getItem("refreshToken")).toBe("refreshed-refresh");
+    });
+
+    it("should clear auth when refresh fails", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      mockRefreshTokens.mockRejectedValueOnce(new Error("Token expired"));
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Login first
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      const registeredRefreshFn = mockSetOnRefreshTokens.mock.calls[0][0];
+
+      await act(async () => {
+        await registeredRefreshFn();
+      });
+
+      // Auth should be cleared
+      expect(mockSetAccessToken).toHaveBeenCalledWith(null);
+      expect(sessionStorage.getItem("accessToken")).toBeNull();
+      expect(sessionStorage.getItem("refreshToken")).toBeNull();
+      expect(result.current.user).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
+    });
+
+    it("should clear auth when no refresh token is available", async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // No login, so no refresh token in sessionStorage
+      const registeredRefreshFn = mockSetOnRefreshTokens.mock.calls[0][0];
+
+      await act(async () => {
+        await registeredRefreshFn();
+      });
+
+      expect(mockRefreshTokens).not.toHaveBeenCalled();
+      expect(mockSetAccessToken).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe("session restore with refresh token", () => {
+    it("should restore session with both tokens and schedule refresh", async () => {
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 600000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSetAccessToken).toHaveBeenCalledWith("stored-access");
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it("should refresh immediately when token is expired on restore", async () => {
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem("tokenExpiresAt", (Date.now() - 1000).toString());
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+      mockRefreshTokens.mockResolvedValueOnce({
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 900,
+          tokenType: "Bearer",
+        },
+      });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockRefreshTokens).toHaveBeenCalledWith("stored-refresh");
+    });
+
+    it("should refresh when token remaining fraction is below threshold", async () => {
+      // Set tokenExpiresAt so that remainingMs/totalLifetimeMs <= 0.2 (1 - REFRESH_THRESHOLD of 0.8)
+      // totalLifetimeMs = 900 * 1000 = 900000
+      // If remaining is 100000ms, fraction = 100000/900000 = 0.111 which is <= 0.2
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 100000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+      mockRefreshTokens.mockResolvedValueOnce({
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 900,
+          tokenType: "Bearer",
+        },
+      });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockRefreshTokens).toHaveBeenCalledWith("stored-refresh");
+    });
+
+    it("should schedule refresh when token has enough remaining time", async () => {
+      // Set tokenExpiresAt so that remainingMs/totalLifetimeMs > 0.2
+      // totalLifetimeMs = 900000, if remaining = 800000ms, fraction = 0.888 > 0.2
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      sessionStorage.setItem(
+        "tokenExpiresAt",
+        (Date.now() + 800000).toString()
+      );
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Should NOT have called refresh immediately
+      expect(mockRefreshTokens).not.toHaveBeenCalled();
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it("should restore session with both tokens but no expiresAt", async () => {
+      sessionStorage.setItem("accessToken", "stored-access");
+      sessionStorage.setItem("refreshToken", "stored-refresh");
+      // No tokenExpiresAt set
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSetAccessToken).toHaveBeenCalledWith("stored-access");
+      // Should NOT call refresh since there's no expiresAt to evaluate
+      expect(mockRefreshTokens).not.toHaveBeenCalled();
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it("should restore session with access token only (no refresh token)", async () => {
+      sessionStorage.setItem("accessToken", "stored-access");
+      // No refreshToken set
+      mockGetCurrentUser.mockResolvedValueOnce(mockUser);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSetAccessToken).toHaveBeenCalledWith("stored-access");
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe("scheduleRefresh timer", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it("should call performRefresh when the scheduled timer fires", async () => {
+      jest.useRealTimers();
+      mockLogin.mockResolvedValueOnce({
+        user: mockUser,
+        tokens: {
+          accessToken: "test-access-token",
+          refreshToken: "test-refresh-token",
+          expiresIn: 1, // 1 second so the timer fires at 0.8s
+          tokenType: "Bearer",
+        },
+      });
+
+      const refreshResponse = {
+        tokens: {
+          accessToken: "refreshed-access",
+          refreshToken: "refreshed-refresh",
+          expiresIn: 900,
+          tokenType: "Bearer",
+        },
+      };
+      mockRefreshTokens.mockResolvedValueOnce(refreshResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      // Wait for the scheduled refresh timer to fire (0.8 * 1000ms = 800ms)
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      });
+
+      expect(mockRefreshTokens).toHaveBeenCalledWith("test-refresh-token");
+    });
+  });
+
+  describe("refreshUser", () => {
+    it("should update user data when refreshUser succeeds", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      const updatedUser = { ...mockUser, displayName: "Updated Name" };
+      mockGetCurrentUser.mockResolvedValueOnce(updatedUser);
+
+      await act(async () => {
+        await result.current.refreshUser();
+      });
+
+      expect(result.current.user).toEqual(updatedUser);
+    });
+
+    it("should silently ignore errors when refreshUser fails", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      mockGetCurrentUser.mockRejectedValueOnce(new Error("Network error"));
+
+      // Should not throw
+      await act(async () => {
+        await result.current.refreshUser();
+      });
+
+      // User should remain unchanged (the error is silently caught)
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+  });
+
   describe("useAuth hook outside provider", () => {
     it("should throw error when used outside AuthProvider", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
