@@ -1,6 +1,10 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
-import { setAccessToken } from "@/lib/api/client";
+import {
+  setAccessToken,
+  setOnRefreshTokens,
+  setOnClearAuth,
+} from "@/lib/api/client";
 import * as authApi from "@/lib/api/auth";
 import * as usersApi from "@/lib/api/users";
 import type { ReactNode } from "react";
@@ -8,12 +12,15 @@ import type { LoginResponse, RegisterResponse, User } from "@/types/api";
 
 jest.mock("@/lib/api/client", () => ({
   setAccessToken: jest.fn(),
+  setOnRefreshTokens: jest.fn(),
+  setOnClearAuth: jest.fn(),
 }));
 
 jest.mock("@/lib/api/auth", () => ({
   login: jest.fn(),
   register: jest.fn(),
   logout: jest.fn(),
+  refreshTokens: jest.fn(),
 }));
 
 jest.mock("@/lib/api/users", () => ({
@@ -23,11 +30,20 @@ jest.mock("@/lib/api/users", () => ({
 const mockSetAccessToken = setAccessToken as jest.MockedFunction<
   typeof setAccessToken
 >;
+const mockSetOnRefreshTokens = setOnRefreshTokens as jest.MockedFunction<
+  typeof setOnRefreshTokens
+>;
+const mockSetOnClearAuth = setOnClearAuth as jest.MockedFunction<
+  typeof setOnClearAuth
+>;
 const mockLogin = authApi.login as jest.MockedFunction<typeof authApi.login>;
 const mockRegister = authApi.register as jest.MockedFunction<
   typeof authApi.register
 >;
 const mockLogout = authApi.logout as jest.MockedFunction<typeof authApi.logout>;
+const mockRefreshTokens = authApi.refreshTokens as jest.MockedFunction<
+  typeof authApi.refreshTokens
+>;
 const mockGetCurrentUser = usersApi.getCurrentUser as jest.MockedFunction<
   typeof usersApi.getCurrentUser
 >;
@@ -241,6 +257,82 @@ describe("AuthProvider", () => {
       expect(result.current.isAuthenticated).toBe(false);
       // setAccessToken should be called with null in the catch block
       expect(mockSetAccessToken).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe("refresh token storage", () => {
+    it("should store refresh token in sessionStorage on login", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      expect(sessionStorage.getItem("refreshToken")).toBe("test-refresh-token");
+    });
+
+    it("should store refresh token in sessionStorage on register", async () => {
+      mockRegister.mockResolvedValueOnce(mockRegisterResponse);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.register(
+          "test@example.com",
+          "password123",
+          "Test User"
+        );
+      });
+
+      expect(sessionStorage.getItem("refreshToken")).toBe(
+        "register-refresh-token"
+      );
+    });
+
+    it("should clear refresh token on logout", async () => {
+      mockLogin.mockResolvedValueOnce(mockLoginResponse);
+      mockLogout.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.login("test@example.com", "password123");
+      });
+
+      expect(sessionStorage.getItem("refreshToken")).toBe("test-refresh-token");
+
+      act(() => {
+        result.current.logout();
+      });
+
+      expect(sessionStorage.getItem("refreshToken")).toBeNull();
+    });
+  });
+
+  describe("callback registration", () => {
+    it("should register onRefreshTokens and onClearAuth callbacks on mount", async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSetOnRefreshTokens).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockSetOnClearAuth).toHaveBeenCalledWith(expect.any(Function));
     });
   });
 

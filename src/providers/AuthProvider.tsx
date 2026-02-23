@@ -5,10 +5,15 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { setAccessToken } from "@/lib/api/client";
+import {
+  setAccessToken,
+  setOnRefreshTokens,
+  setOnClearAuth,
+} from "@/lib/api/client";
 import * as authApi from "@/lib/api/auth";
 import * as usersApi from "@/lib/api/users";
 import type { User } from "@/types/api";
@@ -29,6 +34,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const REFRESH_THRESHOLD = 0.8;
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -36,6 +43,83 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleRefreshRef = useRef<(expiresInSeconds: number) => void>(
+    () => {}
+  );
+
+  const clearRefreshTimer = useCallback(() => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+  }, []);
+
+  const clearAuth = useCallback(() => {
+    clearRefreshTimer();
+    setUser(null);
+    setAccessToken(null);
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("tokenExpiresAt");
+  }, [clearRefreshTimer]);
+
+  const performRefresh = useCallback(async () => {
+    const refreshToken = sessionStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      clearAuth();
+      return;
+    }
+
+    try {
+      const response = await authApi.refreshTokens(refreshToken);
+      setAccessToken(response.tokens.accessToken);
+      sessionStorage.setItem("accessToken", response.tokens.accessToken);
+      sessionStorage.setItem("refreshToken", response.tokens.refreshToken);
+      const expiresAt = Date.now() + response.tokens.expiresIn * 1000;
+      sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
+      scheduleRefreshRef.current(response.tokens.expiresIn);
+    } catch {
+      clearAuth();
+    }
+  }, [clearAuth]);
+
+  const scheduleRefresh = useCallback(
+    (expiresInSeconds: number) => {
+      clearRefreshTimer();
+      const delayMs = expiresInSeconds * 1000 * REFRESH_THRESHOLD;
+      refreshTimerRef.current = setTimeout(() => {
+        performRefresh();
+      }, delayMs);
+    },
+    [clearRefreshTimer, performRefresh]
+  );
+
+  // Keep the ref in sync so performRefresh can call scheduleRefresh without circular deps
+  scheduleRefreshRef.current = scheduleRefresh;
+
+  const storeTokensAndSchedule = useCallback(
+    (accessTokenValue: string, refreshToken: string, expiresIn: number) => {
+      setAccessToken(accessTokenValue);
+      sessionStorage.setItem("accessToken", accessTokenValue);
+      sessionStorage.setItem("refreshToken", refreshToken);
+      const expiresAt = Date.now() + expiresIn * 1000;
+      sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
+      scheduleRefresh(expiresIn);
+    },
+    [scheduleRefresh]
+  );
+
+  useEffect(() => {
+    setOnRefreshTokens(performRefresh);
+    setOnClearAuth(clearAuth);
+
+    return () => {
+      setOnRefreshTokens(null);
+      setOnClearAuth(null);
+      clearRefreshTimer();
+    };
+  }, [performRefresh, clearAuth, clearRefreshTimer]);
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -48,39 +132,71 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
-    // Check for existing token in sessionStorage
     const storedToken = sessionStorage.getItem("accessToken");
-    if (storedToken) {
+    const storedRefreshToken = sessionStorage.getItem("refreshToken");
+
+    if (storedToken && storedRefreshToken) {
+      setAccessToken(storedToken);
+
+      const expiresAt = sessionStorage.getItem("tokenExpiresAt");
+      if (expiresAt) {
+        const remainingMs = parseInt(expiresAt, 10) - Date.now();
+        if (remainingMs <= 0) {
+          performRefresh();
+        } else {
+          const totalLifetimeMs = 900 * 1000;
+          const remainingFraction = remainingMs / totalLifetimeMs;
+          if (remainingFraction <= 1 - REFRESH_THRESHOLD) {
+            performRefresh();
+          } else {
+            scheduleRefresh(remainingMs / 1000);
+          }
+        }
+      }
+
+      fetchCurrentUser().finally(() => setIsLoading(false));
+    } else if (storedToken) {
       setAccessToken(storedToken);
       fetchCurrentUser().finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
-  }, [fetchCurrentUser]);
+  }, [fetchCurrentUser, performRefresh, scheduleRefresh]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
-    setAccessToken(response.tokens.accessToken);
-    sessionStorage.setItem("accessToken", response.tokens.accessToken);
-    setUser(response.user);
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const response = await authApi.login({ email, password });
+      storeTokensAndSchedule(
+        response.tokens.accessToken,
+        response.tokens.refreshToken,
+        response.tokens.expiresIn
+      );
+      setUser(response.user);
+    },
+    [storeTokensAndSchedule]
+  );
 
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
-      const response = await authApi.register({ email, password, displayName });
-      setAccessToken(response.tokens.accessToken);
-      sessionStorage.setItem("accessToken", response.tokens.accessToken);
+      const response = await authApi.register({
+        email,
+        password,
+        displayName,
+      });
+      storeTokensAndSchedule(
+        response.tokens.accessToken,
+        response.tokens.refreshToken,
+        response.tokens.expiresIn
+      );
       setUser(response.user);
     },
-    []
+    [storeTokensAndSchedule]
   );
 
   const logout = useCallback(() => {
     authApi.logout().catch(() => {});
-    setUser(null);
-    setAccessToken(null);
-    sessionStorage.removeItem("accessToken");
-  }, []);
+    clearAuth();
+  }, [clearAuth]);
 
   const refreshUser = useCallback(async () => {
     try {
