@@ -44,7 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isRefreshingRef = useRef(false);
+  const refreshPromiseRef = useRef<Promise<void> | null>(null);
   const scheduleRefreshRef = useRef<(expiresInSeconds: number) => void>(
     () => {}
   );
@@ -67,33 +67,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [clearRefreshTimer]);
 
   const performRefresh = useCallback(async () => {
-    if (isRefreshingRef.current) return;
-    isRefreshingRef.current = true;
+    if (refreshPromiseRef.current) return refreshPromiseRef.current;
 
-    const refreshToken = sessionStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      isRefreshingRef.current = false;
-      clearAuth();
-      return;
-    }
+    const doRefresh = async () => {
+      const refreshToken = sessionStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        clearAuth();
+        return;
+      }
 
-    try {
-      const response = await authApi.refreshTokens(refreshToken);
-      setAccessToken(response.tokens.accessToken);
-      sessionStorage.setItem("accessToken", response.tokens.accessToken);
-      sessionStorage.setItem("refreshToken", response.tokens.refreshToken);
-      const expiresAt = Date.now() + response.tokens.expiresIn * 1000;
-      sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
-      sessionStorage.setItem(
-        "tokenLifetimeMs",
-        (response.tokens.expiresIn * 1000).toString()
-      );
-      scheduleRefreshRef.current(response.tokens.expiresIn);
-    } catch {
-      clearAuth();
-    } finally {
-      isRefreshingRef.current = false;
-    }
+      try {
+        const response = await authApi.refreshTokens(refreshToken);
+        setAccessToken(response.tokens.accessToken);
+        sessionStorage.setItem("accessToken", response.tokens.accessToken);
+        sessionStorage.setItem("refreshToken", response.tokens.refreshToken);
+        const expiresAt = Date.now() + response.tokens.expiresIn * 1000;
+        sessionStorage.setItem("tokenExpiresAt", expiresAt.toString());
+        sessionStorage.setItem(
+          "tokenLifetimeMs",
+          (response.tokens.expiresIn * 1000).toString()
+        );
+        scheduleRefreshRef.current(response.tokens.expiresIn);
+      } catch {
+        clearAuth();
+      }
+    };
+
+    refreshPromiseRef.current = doRefresh().finally(() => {
+      refreshPromiseRef.current = null;
+    });
+    return refreshPromiseRef.current;
   }, [clearAuth]);
 
   const scheduleRefreshAfterDelay = useCallback(
@@ -147,10 +150,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = await usersApi.getCurrentUser();
       setUser(userData);
     } catch {
-      setUser(null);
-      setAccessToken(null);
+      clearAuth();
     }
-  }, []);
+  }, [clearAuth]);
 
   useEffect(() => {
     const storedToken = sessionStorage.getItem("accessToken");
@@ -161,11 +163,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const expiresAt = sessionStorage.getItem("tokenExpiresAt");
       if (expiresAt) {
-        const remainingMs = parseInt(expiresAt, 10) - Date.now();
+        const remainingMs = Number.parseInt(expiresAt, 10) - Date.now();
         if (remainingMs <= 0) {
           performRefresh();
         } else {
-          const tokenLifetimeMs = parseInt(
+          const tokenLifetimeMs = Number.parseInt(
             sessionStorage.getItem("tokenLifetimeMs") || "900000",
             10
           );

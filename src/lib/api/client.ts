@@ -92,12 +92,12 @@ apiClient.interceptors.response.use(
         if (onClearAuth) {
           onClearAuth();
         }
-        return Promise.reject(error);
+        throw error;
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(error);
+    throw error;
   }
 );
