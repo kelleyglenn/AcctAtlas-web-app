@@ -77,6 +77,10 @@ export interface LoginResponse {
   tokens: TokenPair;
 }
 
+export interface RefreshResponse {
+  tokens: TokenPair;
+}
+
 export interface ApiErrorDetail {
   field: string;
   message: string;
