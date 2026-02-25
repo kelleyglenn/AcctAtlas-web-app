@@ -33,6 +33,7 @@ export function MapContainer() {
   const { data: clusterData } = useLocationClusters({
     bounds,
     zoom: viewport.zoom,
+    filters,
   });
 
   // Determine whether to show clusters or individual markers

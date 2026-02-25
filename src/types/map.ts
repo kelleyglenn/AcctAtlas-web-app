@@ -72,6 +72,8 @@ export interface ClusterResponse {
 export interface ClusterParams {
   bbox: BoundingBox;
   zoom: number;
+  amendments?: string[];
+  participants?: string[];
 }
 
 // Location details from location service
