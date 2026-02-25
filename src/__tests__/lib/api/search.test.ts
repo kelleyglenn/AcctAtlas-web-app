@@ -350,5 +350,42 @@ describe("api/search", () => {
 
       expect(result.zoom).toBe(5);
     });
+
+    it("wraps Axios errors in SearchError with statusCode", async () => {
+      const axiosError = {
+        response: { status: 400, data: { message: "Invalid bbox" } },
+        message: "Request failed",
+      };
+
+      (apiClient.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+
+      const error = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("Invalid bbox");
+      expect(error.statusCode).toBe(400);
+      expect(error.originalError).toBe(axiosError);
+    });
+
+    it("wraps non-Axios errors in SearchError", async () => {
+      const genericError = new Error("network failure");
+
+      (apiClient.get as jest.Mock).mockRejectedValue(genericError);
+      (axios.isAxiosError as jest.Mock).mockReturnValue(false);
+
+      const error = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("An unexpected error occurred");
+      expect(error.statusCode).toBeUndefined();
+      expect(error.originalError).toBe(genericError);
+    });
   });
 });
