@@ -206,8 +206,23 @@ export async function searchClusters(
     Object.entries(queryParams).filter(([, v]) => v !== undefined)
   );
 
-  const response = await apiClient.get<ApiClusterResponse>("/search/cluster", {
-    params: filteredParams,
-  });
-  return transformClusterResponse(response.data);
+  try {
+    const response = await apiClient.get<ApiClusterResponse>(
+      "/search/cluster",
+      {
+        params: filteredParams,
+      }
+    );
+    return transformClusterResponse(response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch clusters";
+      throw new SearchError(message, statusCode, error);
+    }
+    throw new SearchError("An unexpected error occurred", undefined, error);
+  }
 }
