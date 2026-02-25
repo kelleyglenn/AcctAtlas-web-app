@@ -1,6 +1,13 @@
 import axios from "axios";
 import { apiClient } from "./client";
-import type { SearchParams, SearchResponse, VideoLocation } from "@/types/map";
+import type {
+  ClusterParams,
+  ClusterResponse,
+  LocationCluster,
+  SearchParams,
+  SearchResponse,
+  VideoLocation,
+} from "@/types/map";
 
 /**
  * Search API error with additional context
@@ -131,6 +138,89 @@ export async function searchVideos(
         error.response?.data?.message ||
         error.message ||
         "Failed to search videos";
+      throw new SearchError(message, statusCode, error);
+    }
+    throw new SearchError("An unexpected error occurred", undefined, error);
+  }
+}
+
+/**
+ * Raw API response structure from search service cluster endpoint
+ */
+interface ApiCluster {
+  id: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  count: number;
+  bounds?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
+}
+
+interface ApiClusterResponse {
+  clusters: ApiCluster[];
+  totalLocations: number;
+  zoom: number;
+}
+
+/**
+ * Transform API cluster response to frontend format
+ */
+function transformClusterResponse(
+  apiResponse: ApiClusterResponse
+): ClusterResponse {
+  const clusters: LocationCluster[] = apiResponse.clusters.map((cluster) => ({
+    id: cluster.id,
+    latitude: cluster.coordinates.latitude,
+    longitude: cluster.coordinates.longitude,
+    count: cluster.count,
+    bounds: cluster.bounds,
+  }));
+
+  return {
+    clusters,
+    zoom: apiResponse.zoom,
+  };
+}
+
+/**
+ * Get clustered video counts for a bounding box with optional filters
+ */
+export async function searchClusters(
+  params: ClusterParams
+): Promise<ClusterResponse> {
+  const queryParams: Record<string, string | number | undefined> = {
+    bbox: params.bbox.join(","),
+    zoom: params.zoom,
+  };
+
+  if (params.amendments && params.amendments.length > 0) {
+    queryParams.amendments = params.amendments.join(",");
+  }
+
+  if (params.participants && params.participants.length > 0) {
+    queryParams.participants = params.participants.join(",");
+  }
+
+  const filteredParams = Object.fromEntries(
+    Object.entries(queryParams).filter(([, v]) => v !== undefined)
+  );
+
+  try {
+    const response = await apiClient.get<ApiClusterResponse>(
+      "/search/cluster",
+      {
+        params: filteredParams,
+      }
+    );
+    return transformClusterResponse(response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch clusters";
       throw new SearchError(message, statusCode, error);
     }
     throw new SearchError("An unexpected error occurred", undefined, error);

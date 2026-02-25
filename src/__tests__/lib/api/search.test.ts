@@ -10,7 +10,7 @@ jest.mock("@/lib/api/client", () => ({
 
 import axios from "axios";
 import { apiClient } from "@/lib/api/client";
-import { searchVideos, SearchError } from "@/lib/api/search";
+import { searchVideos, searchClusters, SearchError } from "@/lib/api/search";
 
 describe("api/search", () => {
   beforeEach(() => {
@@ -233,6 +233,159 @@ describe("api/search", () => {
       expect(searchError.statusCode).toBe(500);
       expect(searchError.originalError).toBe(originalError);
       expect(searchError).toBeInstanceOf(Error);
+    });
+  });
+
+  describe("searchClusters", () => {
+    const mockClusterApiResponse = {
+      clusters: [
+        {
+          id: "cluster_5_6_-21",
+          coordinates: { latitude: 37.5, longitude: -122.0 },
+          count: 10,
+          bounds: {
+            minLat: 37.0,
+            maxLat: 38.0,
+            minLng: -123.0,
+            maxLng: -121.0,
+          },
+        },
+      ],
+      totalLocations: 10,
+      zoom: 5,
+    };
+
+    it("transforms API response coordinates to flat lat/lng", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      const result = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      });
+
+      expect(result.clusters[0].latitude).toBe(37.5);
+      expect(result.clusters[0].longitude).toBe(-122.0);
+      expect(result.clusters[0].count).toBe(10);
+      expect(result.clusters[0].bounds).toEqual({
+        minLat: 37.0,
+        maxLat: 38.0,
+        minLng: -123.0,
+        maxLng: -121.0,
+      });
+    });
+
+    it("calls /search/cluster with bbox and zoom", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      await searchClusters({ bbox: [-125, 24, -66, 50], zoom: 5 });
+
+      expect(apiClient.get).toHaveBeenCalledWith("/search/cluster", {
+        params: {
+          bbox: "-125,24,-66,50",
+          zoom: 5,
+        },
+      });
+    });
+
+    it("passes amendments as comma-separated string", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+        amendments: ["FIRST", "FOURTH"],
+      });
+
+      const callParams = (apiClient.get as jest.Mock).mock.calls[0][1].params;
+      expect(callParams.amendments).toBe("FIRST,FOURTH");
+    });
+
+    it("passes participants as comma-separated string", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+        participants: ["POLICE"],
+      });
+
+      const callParams = (apiClient.get as jest.Mock).mock.calls[0][1].params;
+      expect(callParams.participants).toBe("POLICE");
+    });
+
+    it("omits empty filter arrays from params", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+        amendments: [],
+        participants: [],
+      });
+
+      const callParams = (apiClient.get as jest.Mock).mock.calls[0][1].params;
+      expect(callParams).not.toHaveProperty("amendments");
+      expect(callParams).not.toHaveProperty("participants");
+    });
+
+    it("returns zoom from the API response", async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({
+        data: mockClusterApiResponse,
+      });
+
+      const result = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      });
+
+      expect(result.zoom).toBe(5);
+    });
+
+    it("wraps Axios errors in SearchError with statusCode", async () => {
+      const axiosError = {
+        response: { status: 400, data: { message: "Invalid bbox" } },
+        message: "Request failed",
+      };
+
+      (apiClient.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+
+      const error = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("Invalid bbox");
+      expect(error.statusCode).toBe(400);
+      expect(error.originalError).toBe(axiosError);
+    });
+
+    it("wraps non-Axios errors in SearchError", async () => {
+      const genericError = new Error("network failure");
+
+      (apiClient.get as jest.Mock).mockRejectedValue(genericError);
+      (axios.isAxiosError as jest.Mock).mockReturnValue(false);
+
+      const error = await searchClusters({
+        bbox: [-125, 24, -66, 50],
+        zoom: 5,
+      }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(SearchError);
+      expect(error.message).toBe("An unexpected error occurred");
+      expect(error.statusCode).toBeUndefined();
+      expect(error.originalError).toBe(genericError);
     });
   });
 });
