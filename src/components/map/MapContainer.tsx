@@ -18,6 +18,26 @@ import { FilterBar } from "./FilterBar";
 import { DEFAULT_VIEWPORT, MAP_CONFIG } from "@/config/mapbox";
 import type { VideoLocation } from "@/types/map";
 
+function HomeButton({ onClick }: Readonly<{ onClick: () => void }>) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 w-9 h-9 bg-white rounded-md shadow flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+      aria-label="Reset map view"
+      title="Reset map view"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="w-5 h-5"
+      >
+        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+      </svg>
+    </button>
+  );
+}
+
 export function MapContainer() {
   const {
     bounds,
@@ -84,6 +104,15 @@ export function MapContainer() {
     success(`Moved to ${name}`);
   };
 
+  const handleResetView = () => {
+    flyTo(
+      DEFAULT_VIEWPORT.longitude,
+      DEFAULT_VIEWPORT.latitude,
+      DEFAULT_VIEWPORT.zoom
+    );
+    setSelectedVideoId(null);
+  };
+
   // Don't render until we know if we're on mobile
   if (!isClient) {
     return (
@@ -128,28 +157,7 @@ export function MapContainer() {
           <div className="flex-1">
             <LocationSearch onLocationSelect={handleLocationSelect} />
           </div>
-          <button
-            onClick={() => {
-              flyTo(
-                DEFAULT_VIEWPORT.longitude,
-                DEFAULT_VIEWPORT.latitude,
-                DEFAULT_VIEWPORT.zoom
-              );
-              setSelectedVideoId(null);
-            }}
-            className="flex-shrink-0 w-9 h-9 bg-white rounded-md shadow flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            aria-label="Reset map view"
-            title="Reset map view"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-            </svg>
-          </button>
+          <HomeButton onClick={handleResetView} />
         </div>
 
         {/* Bottom sheet with video list */}
@@ -236,28 +244,7 @@ export function MapContainer() {
           <div className="flex-1">
             <LocationSearch onLocationSelect={handleLocationSelect} />
           </div>
-          <button
-            onClick={() => {
-              flyTo(
-                DEFAULT_VIEWPORT.longitude,
-                DEFAULT_VIEWPORT.latitude,
-                DEFAULT_VIEWPORT.zoom
-              );
-              setSelectedVideoId(null);
-            }}
-            className="flex-shrink-0 w-9 h-9 bg-white rounded-md shadow flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            aria-label="Reset map view"
-            title="Reset map view"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-            </svg>
-          </button>
+          <HomeButton onClick={handleResetView} />
         </div>
       </div>
 
