@@ -5,7 +5,10 @@ import { NavBar } from "@/components/NavBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AccountabilityAtlas",
+  title: {
+    template: "%s | AccountabilityAtlas",
+    default: "AccountabilityAtlas",
+  },
   description: "Geo-located video curation for constitutional rights audits",
 };
 
