@@ -87,6 +87,12 @@ export default function ProfilePage() {
                 </p>
               )}
               <p className="text-sm text-gray-500">{user.email}</p>
+              <Link
+                href={`/users/${user.id}`}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                View public profile
+              </Link>
             </div>
           </div>
         </div>
