@@ -67,7 +67,13 @@ export function NavBar() {
             </button>
           </>
         ) : (
-          <Link href="/login">
+          <Link
+            href={
+              isHome
+                ? "/login"
+                : `/login?redirect=${encodeURIComponent(pathname)}`
+            }
+          >
             <Button
               variant="outline"
               className="text-sm"

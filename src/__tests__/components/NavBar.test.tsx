@@ -127,4 +127,20 @@ describe("NavBar", () => {
       expect(profileLink.className).toContain("text-white");
     });
   });
+
+  describe("login redirect", () => {
+    it("Sign In link includes redirect param with current path", () => {
+      mockPathname = "/map";
+      render(<NavBar />);
+      const signInLink = screen.getByText("Sign In").closest("a");
+      expect(signInLink).toHaveAttribute("href", "/login?redirect=%2Fmap");
+    });
+
+    it("Sign In link omits redirect param on home page", () => {
+      mockPathname = "/";
+      render(<NavBar />);
+      const signInLink = screen.getByText("Sign In").closest("a");
+      expect(signInLink).toHaveAttribute("href", "/login");
+    });
+  });
 });
