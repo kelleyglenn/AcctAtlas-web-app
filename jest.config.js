@@ -24,6 +24,12 @@ const customJestConfig = {
     ],
   ],
   coverageThreshold: {
+    global: {
+      statements: 75,
+      branches: 65,
+      functions: 70,
+      lines: 75,
+    },
     "./src/hooks/": {
       statements: 80,
       branches: 80,
@@ -49,10 +55,10 @@ const customJestConfig = {
       lines: 80,
     },
     "./src/components/map/": {
-      statements: 44,
-      branches: 47,
-      functions: 48,
-      lines: 46,
+      statements: 55,
+      branches: 55,
+      functions: 50,
+      lines: 55,
     },
   },
 };
