@@ -132,6 +132,14 @@ describe("MapContainer", () => {
     });
   });
 
+  describe("loading state", () => {
+    it("shows loading placeholder when isClient is false", () => {
+      mockResponsive = { isMobile: false, isClient: false };
+      render(<MapContainer />);
+      expect(screen.getByText("Loading map...")).toBeInTheDocument();
+    });
+  });
+
   describe("search bar translucency", () => {
     it("search bar wrapper has opacity-60 class in desktop layout", () => {
       render(<MapContainer />);
