@@ -214,4 +214,10 @@ describe("ProfilePage", () => {
     fireEvent.click(screen.getByTestId("trigger-error"));
     expect(mockError).toHaveBeenCalledWith("test error");
   });
+
+  it("renders View public profile link", () => {
+    render(<ProfilePage />);
+    const link = screen.getByText("View public profile");
+    expect(link.closest("a")).toHaveAttribute("href", "/users/1");
+  });
 });

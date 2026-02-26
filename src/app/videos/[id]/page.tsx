@@ -1,18 +1,31 @@
-"use client";
+import type { Metadata } from "next";
+import VideoDetailClient from "./VideoDetailClient";
 
-import { useParams } from "next/navigation";
-import dynamic from "next/dynamic";
+const API_BASE_URL =
+  process.env.SERVER_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8080/api/v1";
 
-const VideoDetail = dynamic(
-  () => import("@/components/video/VideoDetail").then((mod) => mod.VideoDetail),
-  { ssr: false }
-);
+interface VideoPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: VideoPageProps): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const res = await fetch(`${API_BASE_URL}/videos/${id}`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return { title: "Video" };
+    const video = await res.json();
+    return { title: video.title || "Video" };
+  } catch {
+    return { title: "Video" };
+  }
+}
 
 export default function VideoPage() {
-  const params = useParams();
-  const videoId = Array.isArray(params.id)
-    ? params.id[0]
-    : (params.id as string);
-
-  return <VideoDetail videoId={videoId} />;
+  return <VideoDetailClient />;
 }
