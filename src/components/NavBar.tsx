@@ -45,15 +45,26 @@ export function NavBar() {
                 Submit Video
               </Button>
             </Link>
-            <Link
-              href="/profile"
-              className={`text-sm transition-colors ${
-                isHome
-                  ? "text-white hover:text-gray-200"
-                  : "text-gray-600 hover:text-blue-600"
-              }`}
-            >
-              {user?.displayName}
+            <Link href="/profile">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={`${user.displayName}'s avatar`}
+                  className={`w-7 h-7 rounded-full object-cover ${
+                    isHome ? "ring-2 ring-white/50" : ""
+                  }`}
+                />
+              ) : (
+                <span
+                  className={`text-sm transition-colors ${
+                    isHome
+                      ? "text-white hover:text-gray-200"
+                      : "text-gray-600 hover:text-blue-600"
+                  }`}
+                >
+                  {user?.displayName}
+                </span>
+              )}
             </Link>
             <button
               onClick={logout}

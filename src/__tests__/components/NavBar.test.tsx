@@ -128,6 +128,47 @@ describe("NavBar", () => {
     });
   });
 
+  describe("avatar display", () => {
+    it("shows avatar image when user has avatarUrl", () => {
+      mockAuth = {
+        user: {
+          id: "1",
+          displayName: "Test User",
+          email: "t@t.com",
+          emailVerified: true,
+          trustTier: "NEW",
+          avatarUrl: "https://example.com/avatar.jpg",
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        logout: mockLogout,
+      };
+      render(<NavBar />);
+      const avatar = screen.getByAltText("Test User's avatar");
+      expect(avatar).toBeInTheDocument();
+      expect(avatar).toHaveAttribute("src", "https://example.com/avatar.jpg");
+      expect(avatar.closest("a")).toHaveAttribute("href", "/profile");
+    });
+
+    it("shows display name text when user has no avatarUrl", () => {
+      mockAuth = {
+        user: {
+          id: "1",
+          displayName: "Test User",
+          email: "t@t.com",
+          emailVerified: true,
+          trustTier: "NEW",
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        logout: mockLogout,
+      };
+      render(<NavBar />);
+      expect(screen.getByText("Test User")).toBeInTheDocument();
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    });
+  });
+
   describe("login redirect", () => {
     it("Sign In link includes redirect param with current path", () => {
       mockPathname = "/map";
