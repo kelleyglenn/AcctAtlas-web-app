@@ -24,8 +24,8 @@ export function MapContainer() {
     viewport,
     filters,
     selectedVideoId,
-    setViewport,
     setSelectedVideoId,
+    flyTo,
   } = useMap();
   const { isMobile, isClient } = useResponsive();
   const { toasts, dismissToast, success } = useToasts();
@@ -130,7 +130,11 @@ export function MapContainer() {
           </div>
           <button
             onClick={() => {
-              setViewport(DEFAULT_VIEWPORT);
+              flyTo(
+                DEFAULT_VIEWPORT.longitude,
+                DEFAULT_VIEWPORT.latitude,
+                DEFAULT_VIEWPORT.zoom
+              );
               setSelectedVideoId(null);
             }}
             className="flex-shrink-0 w-9 h-9 bg-white rounded-md shadow flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -234,7 +238,11 @@ export function MapContainer() {
           </div>
           <button
             onClick={() => {
-              setViewport(DEFAULT_VIEWPORT);
+              flyTo(
+                DEFAULT_VIEWPORT.longitude,
+                DEFAULT_VIEWPORT.latitude,
+                DEFAULT_VIEWPORT.zoom
+              );
               setSelectedVideoId(null);
             }}
             className="flex-shrink-0 w-9 h-9 bg-white rounded-md shadow flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50"

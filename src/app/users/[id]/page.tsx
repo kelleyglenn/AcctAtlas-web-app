@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import PublicProfileClient from "./PublicProfileClient";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+  process.env.SERVER_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8080/api/v1";
 
 interface UserPageProps {
   params: Promise<{ id: string }>;

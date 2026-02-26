@@ -42,7 +42,7 @@ jest.mock("@/components/ui/Toast", () => ({
   ToastContainer: () => null,
 }));
 
-const mockSetViewport = jest.fn();
+const mockFlyTo = jest.fn();
 const mockSetSelectedVideoId = jest.fn();
 jest.mock("@/providers/MapProvider", () => ({
   useMap: () => ({
@@ -50,11 +50,10 @@ jest.mock("@/providers/MapProvider", () => ({
     viewport: { longitude: -98.58, latitude: 39.83, zoom: 4 },
     filters: { amendments: [], participants: [] },
     selectedVideoId: null,
-    setViewport: mockSetViewport,
     setSelectedVideoId: mockSetSelectedVideoId,
     highlightedVideoId: null,
     setHighlightedVideoId: jest.fn(),
-    flyTo: jest.fn(),
+    flyTo: mockFlyTo,
     pendingFlyTo: null,
     clearPendingFlyTo: jest.fn(),
     fitBounds: jest.fn(),
@@ -125,14 +124,10 @@ describe("MapContainer", () => {
       expect(screen.getByLabelText("Reset map view")).toBeInTheDocument();
     });
 
-    it("resets viewport and clears selection on click", () => {
+    it("calls flyTo with default viewport and clears selection on click", () => {
       render(<MapContainer />);
       fireEvent.click(screen.getByLabelText("Reset map view"));
-      expect(mockSetViewport).toHaveBeenCalledWith({
-        longitude: -98.5795,
-        latitude: 39.8283,
-        zoom: 4,
-      });
+      expect(mockFlyTo).toHaveBeenCalledWith(-98.5795, 39.8283, 4);
       expect(mockSetSelectedVideoId).toHaveBeenCalledWith(null);
     });
   });
