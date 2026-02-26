@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import PublicProfilePage from "@/app/users/[id]/page";
+import PublicProfilePage from "@/app/users/[id]/PublicProfileClient";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const mockParams = { id: "user-123" };
